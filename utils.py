@@ -8,6 +8,7 @@ import torch
 from torch.utils.data.dataset import Dataset
 import torchvision
 import torchvision.datasets as data
+import torchvision.transforms as transforms
 
 class CustomDataset(Dataset):
     def __init__(self, ID, train=True):
@@ -34,7 +35,7 @@ class CustomDataset(Dataset):
         return (feature, label)
 
     def __len__(self):
-        return len(self.y)
+        return len(self.Y)
 
 
 def get_mnist():
@@ -58,8 +59,8 @@ def get_mnist():
     tst = Dataset(X_test , Y_test, y_test, nb_classes)
 
     del X_train, X_test, Y_train, Y_test, y_train, y_test """
-    training_set = data.MNIST(root='./datasets', train=True, transform = None, target_transform = None, download=True)
-    testing_set = data.MNIST(root='./datasets', train=True, transform = None, target_transform = None, download = True)
+    training_set = data.MNIST(root='./datasets', train=True, transform = transforms.ToTensor(), target_transform = None, download=True)
+    testing_set = data.MNIST(root='./datasets', train=True, transform = transforms.ToTensor(), target_transform = None, download = True)
 
  
     return training_set, testing_set
@@ -151,7 +152,13 @@ def data_shuffle(data_sets_org, percent_of_train, min_test_data=80, shuffle_data
 
 if __name__ == "__main__":
     # get_IB_data('2017_12_21_16_51_3_275766')
-    test = CustomDataset('2017_12_21_16_51_3_275766')
-    x, y = test[1]
-    print(x)
-    print(y)
+    # test = CustomDataset('2017_12_21_16_51_3_275766')
+    train, test = get_mnist()
+    dataset_loader = torch.utils.data.DataLoader(test,batch_size=4, shuffle=True, num_workers=4)
+    l = 0
+    for i, (x, y) in enumerate(dataset_loader):
+        print(x)
+        print(y)
+        l += 1
+        if l == 5:
+            break
