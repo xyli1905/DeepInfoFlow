@@ -60,7 +60,7 @@ def get_mnist():
 
     del X_train, X_test, Y_train, Y_test, y_train, y_test """
     training_set = data.MNIST(root='./datasets', train=True, transform = transforms.ToTensor(), target_transform = None, download=True)
-    testing_set = data.MNIST(root='./datasets', train=True, transform = transforms.ToTensor(), target_transform = None, download = True)
+    testing_set = data.MNIST(root='./datasets', train=False, transform = transforms.ToTensor(), target_transform = None, download = True)
 
  
     return training_set, testing_set
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # get_IB_data('2017_12_21_16_51_3_275766')
     # test = CustomDataset('2017_12_21_16_51_3_275766')
     train, test = get_mnist()
-    dataset_loader = torch.utils.data.DataLoader(test,batch_size=4, shuffle=True, num_workers=4)
+    dataset_loader = torch.utils.data.DataLoader(test, batch_size=4, shuffle=True, num_workers=4)
     l = 0
     for i, (x, y) in enumerate(dataset_loader):
         print(x)
