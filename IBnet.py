@@ -13,38 +13,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from model import model
+
 #import pytorch as pt
 #import kde
 #import utils
 #import loggingreporter 
-
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model,self).__init__()
-
-
-        self.Dense1 = nn.Linear(12, 12)
-        self.Dense2 = nn.Linear(12, 10)
-        self.Dense3 = nn.Linear(10, 7)
-        self.Dense4 = nn.Linear(7, 5)
-        self.Dense5 = nn.Linear(5, 4)
-        self.Dense6 = nn.Linear(4, 3)
-        self.Dense7 = nn.Linear(3, 2)
-        self.Dense8 = nn.Linear(2,2)
-
-    def forward(self,x):
-        x = self.Dense1(x)
-        x = self.Dense2(x)
-        x = self.Dense3(x)
-        x = self.Dense4(x)
-        x = self.Dense5(x)
-        x = self.Dense6(x)
-        x = self.Dense7(x)
-        x = self.Dense8(x)
-        return x
-
-
 
 
 
@@ -73,7 +47,7 @@ class SaveActivations:
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
-        model = Model()
+        model = model()
         model.apply(weights_init)
         optimizer = optim.SGD(model.parameters(), 
                                 lr=self.cfg['LEARNINGRATE'], 
