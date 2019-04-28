@@ -162,3 +162,17 @@ if __name__ == "__main__":
         l += 1
         if l == 5:
             break
+
+            
+    # import requests
+    # import pandas
+    # import json
+
+    # headers={ 
+    # "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36", 
+    # } 
+    # url = 'https://stats.nba.com/stats/commonallplayers'
+    # params = {"LeagueId": "00", "Season":'2016-17', 'IsOnlyCurrentSeaSon':'0'} 
+    # response = requests.get(url=url, params=params, headers=headers).text 
+    # data = json.loads(response)
+    # print(data)
