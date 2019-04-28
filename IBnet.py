@@ -15,27 +15,29 @@ import torch.nn as nn
 import torch.optim as optim
 
 from model import model
+from base_options import BaseOption
 import utils
+import datetime
 
 
 class SaveActivations:
-    def __init__(self, dataset = 'IBNet'):
-
+    def __init__(self):
+        self._opt = BaseOption().parse()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
 
-        if dataset == "mnist":
+        if self._opt.dataset == "mnist":
             train_data, test_data = utils.get_mnist()
-            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=4, shuffle=True, num_workers=4)
-            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=4)
+            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
 
             ######################################################
             # to do add initialize model method for mnist dataset#
             ######################################################
-        elif dataset == "IBNet":
+        elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=4, shuffle=True, num_workers=4)
-            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=4)
+            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
 
             self.initialize_model()
         else:
@@ -51,17 +53,14 @@ class SaveActivations:
                 nn.init.constant_(m.bias.data, 0)
         self.model = model()
         self.model.apply(weights_init)
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
         self.criterion = nn.CrossEntropyLoss() # loss
 
     def training_model(self):
         print('Begin training...')
         self.model = self.model.to(self.device)
-
-        EPOCHS = 1 # to be edited later
-
-
-        for i in range(0, EPOCHS):
+        for i in range(0, self._opt.max_epoch):
+            
             self.model.train()
             running_loss = 0.0
             running_acc = 0.0
@@ -93,12 +92,23 @@ class SaveActivations:
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
+            
+            save_full_path = self.generate_save_fullpath(i + 1)
             torch.save({
             'epoch':i,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            }, './models/model_epoch_{}.pth'.format(i+1))
-        
+            }, save_full_path)
+    
+    def generate_save_fullpath(self, epoch):
+        save_root_dir = self._opt.save_root_dir
+        dataset = self._opt.dataset
+        time = datetime.datetime.today().strftime('%m_%d_%H_%M')
+        model = ''.join(list(map(lambda x:str(x) + '_', self.model.layer_dims)))
+        epoch = str(epoch)
+        suffix = '.pth'
+        fullpath = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/' + 'model_epoch_' + epoch + suffix
+        return fullpath
 
 
 
@@ -237,5 +247,5 @@ class ComputeMI:
                 self.measures[activation][epoch] = cepochdata
 
 if __name__ == "__main__":
-    test = SaveActivations('IBNet')
+    test = SaveActivations()
     test.training_model()
