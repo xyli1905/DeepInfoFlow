@@ -1,5 +1,6 @@
 from __future__ import print_function
 import numpy as np
+import sys
 import os, pickle
 from collections import defaultdict, OrderedDict
 
@@ -14,62 +15,107 @@ import torch.nn as nn
 import torch.optim as optim
 
 from model import model
-
-#import pytorch as pt
-#import kde
-#import utils
-#import loggingreporter 
-
+import utils
 
 
 class SaveActivations:
-    def __init__(self):
-        self.cfg = {}
-        self.init_cfg()
-        self.trn, self.tst = utils.get_IB_data('2017_12_21_16_51_3_275766')
+    def __init__(self, dataset = 'IBNet'):
 
-    def init_cfg(self):
-        self.cfg['BATCHSIZE']       = 256
-        self.cfg['LEARNINGRATE']    = 0.0004
-        self.cfg['MOMENTUM']        = 0.9
-        self.cfg['NUM_EPOCHS']      = 8000
-        self.cfg['FULL_MI']         = True
-        self.cfg['ACTIVATION']      = 'tanh'
-        # self.cfg['ACTIVATION']    = 'relu'
-        # self.cfg['ACTIVATION']    = 'softsign'
-        # self.cfg['ACTIVATION']    = 'softplus'
-        self.cfg['LAYER_DIMS']      = [12,10,7,5,4,3,2] # original IB network
-        ARCH_NAME =  '-'.join(map(str, self.cfg['LAYER_DIMS']))
-        self.cfg['SAVE_DIR']        = 'rawdata/' + self.cfg['ACTIVATION'] + '_' + ARCH_NAME  # Where to save activation and weights data
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+
+        if dataset == "mnist":
+            train_data, test_data = utils.get_mnist()
+            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=4, shuffle=True, num_workers=4)
+            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=4)
+
+            ######################################################
+            # to do add initialize model method for mnist dataset#
+            ######################################################
+        elif dataset == "IBNet":
+            train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
+            test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
+            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=4, shuffle=True, num_workers=4)
+            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=4)
+
+            self.initialize_model()
+        else:
+            raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
+
+
+
 
     def initialize_model(self):
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
-        model = model()
-        model.apply(weights_init)
-        optimizer = optim.SGD(model.parameters(), 
-                                lr=self.cfg['LEARNINGRATE'], 
-                                momentum=self.cfg['MOMENTUM'])
-        criterion = nn.CrossEntropyLoss() # loss
+        self.model = model()
+        self.model.apply(weights_init)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9)
+        self.criterion = nn.CrossEntropyLoss() # loss
+
+    def training_model(self):
+        print('Begin training...')
+        self.model = self.model.to(self.device)
+
+        EPOCHS = 1 # to be edited later
 
 
-    def do_report(self, epoch):
-        # Only log activity for some epochs.  Mainly this is to make things run faster.
-        if epoch < 20:       # Log for all first 20 epochs
-            return True
-        elif epoch < 100:    # Then for every 5th epoch
-            return (epoch % 5 == 0)
-        elif epoch < 2000:    # Then every 10th
-            return (epoch % 20 == 0)
-        else:                # Then every 100th
-            return (epoch % 100 == 0)
+        for i in range(0, EPOCHS):
+            self.model.train()
+            running_loss = 0.0
+            running_acc = 0.0
+            for j , (inputs, labels) in enumerate(self.train_set):
+                print(inputs)
+                inputs = inputs.to(self.device)
+                labels = labels.to(self.device)
+
+                with torch.set_grad_enabled(True):
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs, labels)
+                    _, preds = torch.max(outputs, 1)
+
+                    self.optimizer.zero_grad()
+
+                    loss.backward()
+
+                    self.optimizer.step()
+
+                running_loss += loss * inputs.size(0)
+                corrects = torch.sum(preds == labels.data).double()
+                running_acc += corrects
+                sys.stdout.flush()
+                print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
+                
+            epoch_loss = running_loss / len(self.train_set)
+            epoch_acc = running_acc.double() / len(self.train_set)
+            print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
+            print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
+            print('----------------------------------------------------------------')
+            torch.save({
+            'epoch':i,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            }, './models/model_epoch_{}.pth'.format(i+1))
         
-        reporter = loggingreporter.LoggingReporter(cfg=self.cfg, 
-                                            trn=self.trn, 
-                                            tst=self.tst, 
-                                            do_save_func=self.do_report)
+
+
+
+    # def do_report(self, epoch):
+    #     # Only log activity for some epochs.  Mainly this is to make things run faster.
+    #     if epoch < 20:       # Log for all first 20 epochs
+    #         return True
+    #     elif epoch < 100:    # Then for every 5th epoch
+    #         return (epoch % 5 == 0)
+    #     elif epoch < 2000:    # Then every 10th
+    #         return (epoch % 20 == 0)
+    #     else:                # Then every 100th
+    #         return (epoch % 100 == 0)
+        
+    #     reporter = loggingreporter.LoggingReporter(cfg=self.cfg, 
+    #                                         trn=self.trn, 
+    #                                         tst=self.tst, 
+    #                                         do_save_func=self.do_report)
 
 
 
@@ -188,3 +234,7 @@ class ComputeMI:
                         pstr += ' | bin: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (cepochdata['MI_XM_bin'][-1], cepochdata['MI_YM_bin'][-1])
                     print('- Layer %d %s' % (lndx, pstr) )
                 self.measures[activation][epoch] = cepochdata
+
+if __name__ == "__main__":
+    test = SaveActivations('IBNet')
+    test.training_model()
