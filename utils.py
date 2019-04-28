@@ -10,6 +10,7 @@ import torchvision
 import torchvision.datasets as data
 import torchvision.transforms as transforms
 
+
 class CustomDataset(Dataset):
     def __init__(self, ID, train=True):
         self.nb_classes = 2
