@@ -9,6 +9,22 @@ class BaseOption:
 
     def initialize(self):
         # directory options
+
+        # Arguments For IBnet Begin
+        self._parser.add_argument('--batch_size', type=int, default=64, help='number of data points in one batch')
+        self._parser.add_argument('--lr', type=float, default=0.04, help='learning rate')
+        self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
+        self._parser.add_argument('--max_epoch', type=int, default=8000, help='number of epochs')
+        self._parser.add_argument('--num_workers', type=int, default=4, help='number of threads')
+        self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight sdecay')
+
+        self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
+        self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
+        self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
+        self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
+
+        # Arguments For IBnet End
+
         self._parser.add_argument('--chkp_dir', type=str, default='./checkpoints', help='directory storing trained models and optimizers')
         self._parser.add_argument('--data_dir', type=str, default='./data_proc/processed_data', help='directory storing preprocessed data')
         self._parser.add_argument('--results_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
@@ -37,7 +53,6 @@ class BaseOption:
 
         # general options for training  (same for E and C)
         self._parser.add_argument('--is_train', type=self.boolean_string, default=True, help='flag showing if the model is in training')
-        self._parser.add_argument('--batch_size', type=int, default=64, help='number of data points in one batch')
         self._parser.add_argument('--is_emb_trainable', type=self.boolean_string, default=False, help='whether allow update pretrained embedding')
 
         # training options for classifier (& normal model)
