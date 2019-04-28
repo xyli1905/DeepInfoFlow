@@ -25,8 +25,8 @@ class CustomDataset(Dataset):
             (X, Y) = (data['X_train'], data['y_train'])
         else:
             (X, Y) = (data['X_test'], data['y_test'])
-        self.X = X
-        self.Y = Y
+        self.X = torch.from_numpy(X)
+        self.Y = torch.from_numpy(Y)
         assert len(self.X) == len(self.Y)
         
 

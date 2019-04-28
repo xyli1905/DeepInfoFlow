@@ -66,7 +66,8 @@ class SaveActivations:
             running_loss = 0.0
             running_acc = 0.0
             for j , (inputs, labels) in enumerate(self.train_set):
-                print(inputs)
+                inputs = inputs.float()
+                labels = labels.long()
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
 
