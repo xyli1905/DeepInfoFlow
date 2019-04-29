@@ -42,7 +42,8 @@ COLORBAR_MAX_EPOCHS = 10000
 
 # Directories from which to load saved layer activity
 # ARCH = '1024-20-20-20'
-ARCH = '12-10-7-5-4-3-2'
+# ARCH = '12-10-7-5-4-3-2'
+ARCH = '10-7-5-4-3'
 #ARCH = '20-20-20-20-20-20'
 #ARCH = '32-28-24-20-16-12'
 #ARCH = '32-28-24-20-16-12-8-8'
@@ -92,7 +93,8 @@ measures['relu'] = {}
 for activation in measures.keys():
     cur_dir = 'rawdata/' + DIR_TEMPLATE % activation
     if not os.path.exists(cur_dir):
-        print("Directory %s not found" % cur_dir)
+        print("Directory %s not found, making new one" % cur_dir)
+        os.makedirs(cur_dir)
         continue
         
     # Load files saved during each epoch, and compute MI measures of the activity in that epoch
@@ -104,6 +106,7 @@ for activation in measures.keys():
         fname = cur_dir + "/" + epochfile
         with open(fname, 'rb') as f:
             d = pickle.load(f)
+        print("load file here")
 
         epoch = d['epoch']
         if epoch in measures[activation]: # Skip this epoch if its already been processed
