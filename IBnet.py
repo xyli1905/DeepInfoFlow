@@ -24,11 +24,14 @@ class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+        print("device: ",self.device)
 
         if self._opt.dataset == "mnist":
             train_data, test_data = utils.get_mnist()
             self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
+
+            print("MNIST experiment")
 
             ######################################################
             # to do add initialize model method for mnist dataset#
@@ -40,6 +43,8 @@ class SaveActivations:
             self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
 
             self.initialize_model()
+
+            print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
 
@@ -58,7 +63,7 @@ class SaveActivations:
 
     def training_model(self):
         print('Begin training...')
-        self.model = self.model.to(self.device)
+        self.model.to(self.device)
         for i in range(0, self._opt.max_epoch):
             
             self.model.train()
@@ -94,6 +99,7 @@ class SaveActivations:
             print('----------------------------------------------------------------')
             
             save_full_path = self.generate_save_fullpath(i + 1)
+
             torch.save({
             'epoch':i,
             'model_state_dict': self.model.state_dict(),
@@ -107,6 +113,8 @@ class SaveActivations:
         model = ''.join(list(map(lambda x:str(x) + '_', self.model.layer_dims)))
         epoch = str(epoch)
         suffix = '.pth'
+        if not os.path.exists(save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'):
+            os.makedirs(save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/')
         fullpath = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/' + 'model_epoch_' + epoch + suffix
         return fullpath
 

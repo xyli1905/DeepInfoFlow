@@ -7,8 +7,8 @@ class model(nn.Module):
     def __init__(self):
         super(model,self).__init__()
         self.layer_dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]
-        self.D = {}
-        self.A = {}
+        self.D = nn.ModuleList([])
+        self.A = nn.ModuleList([])
         self.construct_model_by_name('relu')
 
 
@@ -22,16 +22,16 @@ class model(nn.Module):
                 if numOfActiv > 0:
                     setattr(self, 'Activ' + str(i), nn.Tanh())
                     numOfActiv -= 1
-                    self.A[i] = nn.Tanh()
-                self.D[i] = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
+                    self.A.append(nn.Tanh())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
         elif name == 'relu':
             for i in range(depth):
                 setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
                     setattr(self, 'Activ' + str(i), nn.ReLU())
                     numOfActiv -= 1
-                    self.A[i] = nn.ReLU()
-                self.D[i] = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
+                    self.A.append(nn.ReLU())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
  
 
     def forward(self, x):
@@ -52,14 +52,19 @@ def weights_init(m):
 
 
 if __name__ == '__main__':
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+    print(device)
     model = model()
     print (model)
     model.apply(weights_init)
+    model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     
     #example forward
     dummy_x = torch.randn(5, 12) #feature
     dummy_y = torch.randint(0,1,(5,2)) #label
+    dummy_x = dummy_x.to(device)
+    dummy_y = dummy_y.to(device)
     result = model.forward(dummy_x) #inference
     print(result)
 
