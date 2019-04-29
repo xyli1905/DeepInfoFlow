@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+import copy
 
 class model(nn.Module):
     def __init__(self):
@@ -9,7 +9,7 @@ class model(nn.Module):
         self.layer_dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]
         self.D = {}
         self.A = {}
-        self.construct_model_by_name('tanh')
+        self.construct_model_by_name('relu')
 
 
     def construct_model_by_name(self, name):
@@ -18,19 +18,20 @@ class model(nn.Module):
 
         if name == 'tanh':
             for i in range(depth):
-                self.Dense = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
+                setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    self.Activ = nn.Tanh()
+                    setattr(self, 'Activ' + str(i), nn.Tanh())
                     numOfActiv -= 1
-                    self.A[i] = self.Activ
-                self.D[i] = self.Dense
+                    self.A[i] = nn.Tanh()
+                self.D[i] = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
         elif name == 'relu':
             for i in range(depth):
-                self.Dense = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
+                setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    self.Activ = nn.ReLU()
+                    setattr(self, 'Activ' + str(i), nn.ReLU())
                     numOfActiv -= 1
-                self.D[i] = self.Dense
+                    self.A[i] = nn.ReLU()
+                self.D[i] = nn.Linear(self.layer_dims[i], self.layer_dims[i + 1])
  
 
     def forward(self, x):
@@ -40,6 +41,7 @@ class model(nn.Module):
             if i < len(self.A):
                 activ = self.A[i]
                 x = activ(x) 
+
         return x
 
 def weights_init(m):
@@ -51,6 +53,7 @@ def weights_init(m):
 
 if __name__ == '__main__':
     model = model()
+    print (model)
     model.apply(weights_init)
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     
