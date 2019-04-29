@@ -23,6 +23,7 @@ import datetime
 class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
+
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self.device)
 
@@ -48,6 +49,13 @@ class SaveActivations:
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
 
+        save_root_dir = self._opt.save_root_dir
+        dataset = self._opt.dataset
+        time = datetime.datetime.today().strftime('%m_%d_%H_%M')
+        model = ''.join(list(map(lambda x:str(x) + '_', self.model.layer_dims)))
+        self.path_to_dir = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'
+        if not os.path.exists(self.path_to_dir):
+            os.makedirs(self.path_to_dir)
 
 
 
@@ -107,15 +115,8 @@ class SaveActivations:
             }, save_full_path)
     
     def generate_save_fullpath(self, epoch):
-        save_root_dir = self._opt.save_root_dir
-        dataset = self._opt.dataset
-        time = datetime.datetime.today().strftime('%m_%d_%H_%M')
-        model = ''.join(list(map(lambda x:str(x) + '_', self.model.layer_dims)))
-        epoch = str(epoch)
         suffix = '.pth'
-        if not os.path.exists(save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'):
-            os.makedirs(save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/')
-        fullpath = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/' + 'model_epoch_' + epoch + suffix
+        fullpath = self.path_to_dir + 'model_epoch_' + str(epoch) + suffix
         return fullpath
 
 
