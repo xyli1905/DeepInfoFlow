@@ -23,10 +23,12 @@ import datetime
 class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
-
+        # check device
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self.device)
 
+
+        # dataset
         if self._opt.dataset == "mnist":
             train_data, test_data = utils.get_mnist()
             self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
@@ -42,13 +44,12 @@ class SaveActivations:
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
             self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self.test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-
             self.initialize_model()
-
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
 
+        # construct saving directory
         save_root_dir = self._opt.save_root_dir
         dataset = self._opt.dataset
         time = datetime.datetime.today().strftime('%m_%d_%H_%M')
@@ -60,29 +61,34 @@ class SaveActivations:
 
 
     def initialize_model(self):
+        # weight initialization
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
+        # model construction
         self.model = model()
         self.model.apply(weights_init)
+        # optimizer 
         self.optimizer = optim.SGD(self.model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
+        # loss
         self.criterion = nn.CrossEntropyLoss() # loss
 
     def training_model(self):
         print('Begin training...')
         self.model.to(self.device)
+
+        # main loop for training
         for i in range(0, self._opt.max_epoch):
-            
+            # set to train
             self.model.train()
             running_loss = 0.0
             running_acc = 0.0
+            # batch training
             for j , (inputs, labels) in enumerate(self.train_set):
-                inputs = inputs.float()
-                labels = labels.long()
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
-
+                # set to learnable
                 with torch.set_grad_enabled(True):
                     outputs = self.model(inputs)
                     loss = self.criterion(outputs, labels)
@@ -93,33 +99,48 @@ class SaveActivations:
                     loss.backward()
 
                     self.optimizer.step()
-
+                # acc and loss calculation
                 running_loss += loss * inputs.size(0)
                 corrects = torch.sum(preds == labels.data).double()
                 running_acc += corrects
                 sys.stdout.flush()
                 print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
-                
             epoch_loss = running_loss / len(self.train_set)
             epoch_acc = running_acc.double() / len(self.train_set)
+            print("")
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
-            
+
+
+            # logging for std mean and L2N
+            if self.needLog(i):
+                if self._opt.std:
+                    self.std(i)
+                if self._opt.mean:
+                    self.mean(i)
+                if self._opt.l2n:
+                    self.l2n(i)
+
+
+            # saving model
             save_full_path = self.generate_save_fullpath(i + 1)
-
-            if self._opt.std:
-                self.std(i)
-            if self._opt.mean:
-                self.mean(i)
-            if self._opt.l2n:
-                self.l2n(epoch)
-
             torch.save({
             'epoch':i,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             }, save_full_path)
+
+    def needLog(self, epoch):
+        # Only log activity for some epochs.  Mainly this is to make things run faster.
+        if epoch < 20:       # Log for all first 20 epochs
+            return True
+        elif epoch < 100:    # Then for every 5th epoch
+            return (epoch % 5 == 0)
+        elif epoch < 2000:    # Then every 10th
+            return (epoch % 20 == 0)
+        else:                # Then every 100th
+            return (epoch % 100 == 0)
 
     def mean(self, epoch):
         pass
