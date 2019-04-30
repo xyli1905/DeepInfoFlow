@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from model import model
+from model import Model
 from base_options import BaseOption
 import utils
 import datetime
@@ -67,7 +67,7 @@ class SaveActivations:
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self.model = model()
+        self.model = Model()
         self.model.apply(weights_init)
         # optimizer 
         self.optimizer = optim.SGD(self.model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
@@ -99,6 +99,15 @@ class SaveActivations:
                     loss.backward()
 
                     self.optimizer.step()
+
+                    # logging for std mean and L2N
+                    if self.needLog(i):
+                        if self._opt.std:
+                            self.std(i)
+                        if self._opt.mean:
+                            self.mean(i)
+                        if self._opt.l2n:
+                            self.l2n(i)
                 # acc and loss calculation
                 running_loss += loss * inputs.size(0)
                 corrects = torch.sum(preds == labels.data).double()
@@ -112,24 +121,18 @@ class SaveActivations:
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
 
-
-            # logging for std mean and L2N
-            if self.needLog(i):
-                if self._opt.std:
-                    self.std(i)
-                if self._opt.mean:
-                    self.mean(i)
-                if self._opt.l2n:
-                    self.l2n(i)
-
+            
+            break
 
             # saving model
-            save_full_path = self.generate_save_fullpath(i + 1)
-            torch.save({
-            'epoch':i,
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            }, save_full_path)
+            # uncomment to save model
+
+            # save_full_path = self.generate_save_fullpath(i + 1)
+            # torch.save({
+            # 'epoch':i,
+            # 'model_state_dict': self.model.state_dict(),
+            # 'optimizer_state_dict': self.optimizer.state_dict(),
+            # }, save_full_path)
 
     def needLog(self, epoch):
         # Only log activity for some epochs.  Mainly this is to make things run faster.
@@ -144,6 +147,8 @@ class SaveActivations:
 
     def mean(self, epoch):
         pass
+        # for name, param in self.model.named_parameters():
+        #     print(name.weight.grad)
         # to do implement gradient mean
     
     def std(self, epoch):

@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.optim as optim
 import copy
 
-class model(nn.Module):
+class Model(nn.Module):
     def __init__(self):
-        super(model,self).__init__()
+        super(Model,self).__init__()
         self.layer_dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
