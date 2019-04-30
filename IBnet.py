@@ -24,15 +24,15 @@ class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
         # check device
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
-        print("device: ",self.device)
+        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+        print("device: ",self._device)
 
 
         # dataset
         if self._opt.dataset == "mnist":
             train_data, test_data = utils.get_mnist()
-            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
 
             print("MNIST experiment")
 
@@ -42,9 +42,9 @@ class SaveActivations:
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-            self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self.initialize_model()
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._initialize_model()
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
@@ -53,52 +53,52 @@ class SaveActivations:
         save_root_dir = self._opt.save_root_dir
         dataset = self._opt.dataset
         time = datetime.datetime.today().strftime('%m_%d_%H_%M')
-        model = ''.join(list(map(lambda x:str(x) + '_', self.model.layer_dims)))
-        self.path_to_dir = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'
-        if not os.path.exists(self.path_to_dir):
-            os.makedirs(self.path_to_dir)
+        model = ''.join(list(map(lambda x:str(x) + '_', self._model.layer_dims)))
+        self._path_to_dir = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'
+        if not os.path.exists(self._path_to_dir):
+            os.makedirs(self._path_to_dir)
 
 
 
-    def initialize_model(self):
+    def _initialize_model(self):
         # weight initialization
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self.model = Model()
-        self.model.apply(weights_init)
+        self._model = Model()
+        self._model.apply(weights_init)
         # optimizer 
-        self.optimizer = optim.SGD(self.model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
+        self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
         # loss
-        self.criterion = nn.CrossEntropyLoss() # loss
+        self._criterion = nn.CrossEntropyLoss() # loss
 
     def training_model(self):
         print('Begin training...')
-        self.model.to(self.device)
+        self._model.to(self._device)
 
         # main loop for training
         for i in range(0, self._opt.max_epoch):
             # set to train
-            self.model.train()
+            self._model.train()
             running_loss = 0.0
             running_acc = 0.0
             # batch training
-            for j , (inputs, labels) in enumerate(self.train_set):
-                inputs = inputs.to(self.device)
-                labels = labels.to(self.device)
+            for j , (inputs, labels) in enumerate(self._train_set):
+                inputs = inputs.to(self._device)
+                labels = labels.to(self._device)
                 # set to learnable
                 with torch.set_grad_enabled(True):
-                    outputs = self.model(inputs)
-                    loss = self.criterion(outputs, labels)
+                    outputs = self._model(inputs)
+                    loss = self._criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
 
-                    self.optimizer.zero_grad()
+                    self._optimizer.zero_grad()
 
                     loss.backward()
 
-                    self.optimizer.step()
+                    self._optimizer.step()
 
                     # logging for std mean and L2N
                     if self.needLog(i):
@@ -114,8 +114,8 @@ class SaveActivations:
                 running_acc += corrects
                 sys.stdout.flush()
                 print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
-            epoch_loss = running_loss / len(self.train_set)
-            epoch_acc = running_acc.double() / len(self.train_set)
+            epoch_loss = running_loss / len(self._train_set)
+            epoch_acc = running_acc.double() / len(self._train_set)
             print("")
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
@@ -130,8 +130,8 @@ class SaveActivations:
             # save_full_path = self.generate_save_fullpath(i + 1)
             # torch.save({
             # 'epoch':i,
-            # 'model_state_dict': self.model.state_dict(),
-            # 'optimizer_state_dict': self.optimizer.state_dict(),
+            # 'model_state_dict': self._model.state_dict(),
+            # 'optimizer_state_dict': self._optimizer.state_dict(),
             # }, save_full_path)
 
     def needLog(self, epoch):
@@ -147,7 +147,7 @@ class SaveActivations:
 
     def mean(self, epoch):
         pass
-        # for name, param in self.model.named_parameters():
+        # for name, param in self._model.named_parameters():
         #     print(name.weight.grad)
         # to do implement gradient mean
     
@@ -161,7 +161,7 @@ class SaveActivations:
     
     def generate_save_fullpath(self, epoch):
         suffix = '.pth'
-        fullpath = self.path_to_dir + 'model_epoch_' + str(epoch) + suffix
+        fullpath = self._path_to_dir + 'model_epoch_' + str(epoch) + suffix
         return fullpath
 
 

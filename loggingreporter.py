@@ -38,23 +38,23 @@ class LoggingReporter(keras.callbacks.Callback):
         
         # Functions return weights of each layer
         self.layerweights = []
-        for lndx, l in enumerate(self.model.layers):
+        for lndx, l in enumerate(self._model.layers):
             if hasattr(l, 'kernel'):
                 self.layerixs.append(lndx)
-                self.layerfuncs.append(K.function(self.model.inputs, [l.output,]))
+                self.layerfuncs.append(K.function(self._model.inputs, [l.output,]))
                 self.layerweights.append(l.kernel)
             
-        input_tensors = [self.model.inputs[0],
-                         self.model.sample_weights[0],
-                         self.model.targets[0],
+        input_tensors = [self._model.inputs[0],
+                         self._model.sample_weights[0],
+                         self._model.targets[0],
                          K.learning_phase()]
         # Get gradients of all the relevant layers at once
-        grads = self.model.optimizer.get_gradients(self.model.total_loss, self.layerweights)
+        grads = self._model.optimizer.get_gradients(self._model.total_loss, self.layerweights)
         self.get_gradients = K.function(inputs=input_tensors,
                                         outputs=grads)
         
         # Get cross-entropy loss
-        self.get_loss = K.function(inputs=input_tensors, outputs=[self.model.total_loss,])
+        self.get_loss = K.function(inputs=input_tensors, outputs=[self._model.total_loss,])
             
     def on_epoch_begin(self, epoch, logs={}):
         if self.do_save_func is not None and not self.do_save_func(epoch):
@@ -67,7 +67,7 @@ class LoggingReporter(keras.callbacks.Callback):
             self._log_gradients = True
             self._batch_weightnorm = []
                 
-            self._batch_gradients = [ [] for _ in self.model.layers[1:] ]
+            self._batch_gradients = [ [] for _ in self._model.layers[1:] ]
             
             # Indexes of all the training data samples. These are shuffled and read-in in chunks of SGD_BATCHSIZE
             ixs = list(range(len(self.trn.X)))
@@ -115,7 +115,7 @@ class LoggingReporter(keras.callbacks.Callback):
         }
         
         for lndx, layerix in enumerate(self.layerixs):
-            clayer = self.model.layers[layerix]
+            clayer = self._model.layers[layerix]
             
             data['weights_norm'].append( np.linalg.norm(K.get_value(clayer.kernel)) )
             
