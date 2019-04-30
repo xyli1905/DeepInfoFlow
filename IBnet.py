@@ -108,6 +108,10 @@ class SaveActivations:
                             self.mean(i)
                         if self._opt.l2n:
                             self.l2n(i)
+
+                    # break # for debug purpose
+
+
                 # acc and loss calculation
                 running_loss += loss * inputs.size(0)
                 corrects = torch.sum(preds == labels.data).double()
@@ -120,9 +124,6 @@ class SaveActivations:
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
-
-            
-            break
 
             # saving model
             # uncomment to save model
@@ -146,9 +147,9 @@ class SaveActivations:
             return (epoch % 100 == 0)
 
     def mean(self, epoch):
-        pass
-        # for name, param in self._model.named_parameters():
-        #     print(name.weight.grad)
+        params = list(self._model.parameters())
+        for i in params:
+            print(i.grad)
         # to do implement gradient mean
     
     def std(self, epoch):
