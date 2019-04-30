@@ -41,7 +41,7 @@ class SaveActivations:
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
             self.train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
+            self.test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
 
             self.initialize_model()
 
@@ -108,11 +108,30 @@ class SaveActivations:
             
             save_full_path = self.generate_save_fullpath(i + 1)
 
+            if self._opt.std:
+                self.std(i)
+            if self._opt.mean:
+                self.mean(i)
+            if self._opt.l2n:
+                self.l2n(epoch)
+
             torch.save({
             'epoch':i,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             }, save_full_path)
+
+    def mean(self, epoch):
+        pass
+        # to do implement gradient mean
+    
+    def std(self, epoch):
+        pass
+        # to do implement gradient standard deviation
+
+    def l2n(self, epoch):
+        pass
+        # to do implement weights' L2 normalization
     
     def generate_save_fullpath(self, epoch):
         suffix = '.pth'
