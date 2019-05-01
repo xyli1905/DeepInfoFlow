@@ -4,9 +4,9 @@ import torch.optim as optim
 import copy
 
 class Model(nn.Module):
-    def __init__(self):
+    def __init__(self, dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]):
         super(Model,self).__init__()
-        self.layer_dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]
+        self.layer_dims = dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
         self.construct_model_by_name('relu')
@@ -17,15 +17,6 @@ class Model(nn.Module):
         numOfActiv = depth - 1
 
         if name == 'tanh':
-            # for i in range(depth):
-            #     temp_d = setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-            #     if numOfActiv > 0:
-            #         temp_a = setattr(self, 'Activ' + str(i), nn.Tanh())
-            #         numOfActiv -= 1
-            #         self.A.append(temp_a)
-            #     self.D.append(temp_d)
-
-
             for i in range(depth):
                 # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
@@ -37,14 +28,6 @@ class Model(nn.Module):
 
 
         elif name == 'relu':
-            # for i in range(depth):
-            #     setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-            #     if numOfActiv > 0:
-            #         setattr(self, 'Activ' + str(i), nn.ReLU())
-            #         numOfActiv -= 1
-            #         self.A.append(nn.ReLU())
-            #     self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
             for i in range(depth):
                 # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:

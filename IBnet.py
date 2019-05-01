@@ -33,18 +33,15 @@ class SaveActivations:
             train_data, test_data = utils.get_mnist()
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
-
+            self._initialize_model(dims = [784, 1024, 20, 20, 20, 2])
             print("MNIST experiment")
 
-            ######################################################
-            # to do add initialize model method for mnist dataset#
-            ######################################################
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._initialize_model()
+            self._initialize_model(dims = [12, 12, 10, 7, 5, 4, 3, 2, 2])
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
@@ -60,14 +57,14 @@ class SaveActivations:
 
 
 
-    def _initialize_model(self):
+    def _initialize_model(self,dims):
         # weight initialization
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model()
+        self._model = Model(dims= dims)
         self._model.apply(weights_init)
         # optimizer 
         self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
@@ -86,6 +83,8 @@ class SaveActivations:
             running_acc = 0.0
             # batch training
             for j , (inputs, labels) in enumerate(self._train_set):
+                if len(inputs.shape) > 2:
+                    inputs = inputs.reshape([inputs.shape[0], -1])
                 inputs = inputs.to(self._device)
                 labels = labels.to(self._device)
                 # set to learnable
@@ -109,7 +108,7 @@ class SaveActivations:
                         if self._opt.l2n:
                             self.l2n(i)
 
-                    break # for debug purpose
+                    # break # for debug purpose
 
 
                 # acc and loss calculation
@@ -147,11 +146,7 @@ class SaveActivations:
             return (epoch % 100 == 0)
 
     def mean(self, epoch):
-        print(self._model)
-        for name, params in self._model.named_parameters():
-            # if params.requires_grad:
-            print(name)
-            print(params.grad)
+        pass
         # to do implement gradient mean
     
     def std(self, epoch):
@@ -189,24 +184,27 @@ class SaveActivations:
 
 class ComputeMI:
     def __init__(self):
-        self.trn, self.tst = utils.get_IB_data('2017_12_21_16_51_3_275766')
-        self.FULL_MI = True
-        self.infoplane_measure = 'upper'
-        self.DO_SAVE        = True    # Whether to save plots or just show them
-        self.DO_LOWER       = (self.infoplane_measure == 'lower')   # Whether to compute lower bounds also
-        self.DO_BINNED      = (self.infoplane_measure == 'bin')     # Whether to compute MI estimates based on binning
-        self.MAX_EPOCHS = 10000      # Max number of epoch for which to compute mutual information measure
-        self.NUM_LABELS = 2
-        # self.MAX_EPOCHS = 1000
-        self.COLORBAR_MAX_EPOCHS = 10000
-        self.ARCH = '12-10-7-5-4-3-2'
-        self.DIR_TEMPLATE = '%%s_%s'%self.ARCH
-        self.noise_variance = 1e-3                    # Added Gaussian noise variance
-        self.binsize = 0.07                           # size of bins for binning method
-        self.nats2bits = 1.0/np.log(2) # nats to bits conversion factor
-        self.PLOT_LAYERS    = None
-        self.measures = OrderedDict()
-        self.init_measures()
+        # self.trn, self.tst = utils.get_IB_data('2017_12_21_16_51_3_275766')
+        # self.FULL_MI = True
+        # self.infoplane_measure = 'upper'
+        # self.DO_SAVE        = True    # Whether to save plots or just show them
+        # self.DO_LOWER       = (self.infoplane_measure == 'lower')   # Whether to compute lower bounds also
+        # self.DO_BINNED      = (self.infoplane_measure == 'bin')     # Whether to compute MI estimates based on binning
+        # self.MAX_EPOCHS = 10000      # Max number of epoch for which to compute mutual information measure
+        # self.NUM_LABELS = 2
+        # # self.MAX_EPOCHS = 1000
+        # self.COLORBAR_MAX_EPOCHS = 10000
+        # self.ARCH = '12-10-7-5-4-3-2'
+        # self.DIR_TEMPLATE = '%%s_%s'%self.ARCH
+        # self.noise_variance = 1e-3                    # Added Gaussian noise variance
+        # self.binsize = 0.07                           # size of bins for binning method
+        # self.nats2bits = 1.0/np.log(2) # nats to bits conversion factor
+        # self.PLOT_LAYERS    = None
+        # self.measures = OrderedDict()
+        # self.init_measures()
+
+        self._train = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
+        self._test = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
 
     def init_measures(self):
         
