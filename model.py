@@ -17,18 +17,38 @@ class Model(nn.Module):
         numOfActiv = depth - 1
 
         if name == 'tanh':
+            # for i in range(depth):
+            #     temp_d = setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+            #     if numOfActiv > 0:
+            #         temp_a = setattr(self, 'Activ' + str(i), nn.Tanh())
+            #         numOfActiv -= 1
+            #         self.A.append(temp_a)
+            #     self.D.append(temp_d)
+
+
             for i in range(depth):
-                setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+                # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    setattr(self, 'Activ' + str(i), nn.Tanh())
+                    # setattr(self, 'Activ' + str(i), nn.Tanh())
                     numOfActiv -= 1
                     self.A.append(nn.Tanh())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+
+
         elif name == 'relu':
+            # for i in range(depth):
+            #     setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+            #     if numOfActiv > 0:
+            #         setattr(self, 'Activ' + str(i), nn.ReLU())
+            #         numOfActiv -= 1
+            #         self.A.append(nn.ReLU())
+            #     self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
             for i in range(depth):
-                setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+                # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    setattr(self, 'Activ' + str(i), nn.ReLU())
+                    # setattr(self, 'Activ' + str(i), nn.ReLU())
                     numOfActiv -= 1
                     self.A.append(nn.ReLU())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
@@ -54,7 +74,7 @@ def weights_init(m):
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
     print(device)
-    model = model()
+    model = Model()
     print (model)
     model.apply(weights_init)
     model.to(device)

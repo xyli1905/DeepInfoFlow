@@ -109,7 +109,7 @@ class SaveActivations:
                         if self._opt.l2n:
                             self.l2n(i)
 
-                    # break # for debug purpose
+                    break # for debug purpose
 
 
                 # acc and loss calculation
@@ -147,9 +147,11 @@ class SaveActivations:
             return (epoch % 100 == 0)
 
     def mean(self, epoch):
-        params = list(self._model.parameters())
-        for i in params:
-            print(i.grad)
+        print(self._model)
+        for name, params in self._model.named_parameters():
+            # if params.requires_grad:
+            print(name)
+            print(params.grad)
         # to do implement gradient mean
     
     def std(self, epoch):
