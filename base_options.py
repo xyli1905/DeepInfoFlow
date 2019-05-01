@@ -14,9 +14,10 @@ class BaseOption:
         self._parser.add_argument('--batch_size', type=int, default=64, help='number of data points in one batch')
         self._parser.add_argument('--lr', type=float, default=0.04, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=8000, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=2, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=4, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight sdecay')
+        self._parser.add_argument('--layer_dims', type=list, default=[12, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
 
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
         self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
@@ -26,7 +27,9 @@ class BaseOption:
         self._parser.add_argument('--std', type=self.boolean_string, default=True, help='whether to save nets gradient standard deviation')
         self._parser.add_argument('--mean', type=self.boolean_string, default=True, help='whether to save nets gradient mean')
         self._parser.add_argument('--l2n', type=self.boolean_string, default=True, help='whether to save nets weight L2 normalization')
-
+        
+        self._parser.add_argument('--log_seperator', type=list, default=[20, 100, 2000, 10000], help='number of epochs to change log frequency')
+        self._parser.add_argument('--log_frequency', type=list, default=[1, 5, 20, 100], help='log frequency')
 
 
         # Arguments For IBnet End
@@ -63,6 +66,6 @@ class BaseOption:
             if not os.path.exists(self._opt.debug_dir):
                 os.makedirs(self._opt.debug_dir)
         else:
-            print("running normal mode")
+            print("running normal mode1111111111111111")
 
         return self._opt
