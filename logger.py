@@ -1,9 +1,8 @@
-from base_options import BaseOption
 import re
 
 class Logger(object):
-    def __init__(self):
-        self._opt = BaseOption().parse()
+    def __init__(self, opt):
+        self._opt = opt
         self.log_seperator = self._opt.log_seperator
         self.log_frequency = self._opt.log_frequency
         self.data = self.createDataDict()

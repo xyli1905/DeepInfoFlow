@@ -24,29 +24,26 @@ import datetime
 class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
-        self._logger = Logger()
+        self._logger = Logger(opt = self._opt)
         # check device
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self._device)
 
 
         # dataset
-        if self._opt.dataset == "mnist":
+        if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
-
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._initialize_model(dims = self._opt.layer_dims)
             print("MNIST experiment")
 
-            ######################################################
-            # to do add initialize model method for mnist dataset#
-            ######################################################
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._initialize_model()
+            self._initialize_model(dims = self._opt.layer_dims)
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
@@ -62,14 +59,14 @@ class SaveActivations:
 
 
 
-    def _initialize_model(self):
+    def _initialize_model(self, dims):
         # weight initialization
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model()
+        self._model = Model(dims = dims)
         self._model.apply(weights_init)
         # optimizer 
         self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
@@ -121,8 +118,8 @@ class SaveActivations:
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
-            import pprint
-            pprint.pprint(self._logger.data)
+
+
             # saving model
             # uncomment to save model
 
