@@ -33,7 +33,7 @@ class SaveActivations:
             train_data, test_data = utils.get_mnist()
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=4, shuffle=True, num_workers=self._opt.num_workers)
-            self._initialize_model(dims = [784, 12, 10, 7, 5, 4, 3, 2, 2])
+            self._initialize_model(dims = [784, 1024, 20, 20, 20, 2])
             print("MNIST experiment")
 
         elif self._opt.dataset == "IBNet":

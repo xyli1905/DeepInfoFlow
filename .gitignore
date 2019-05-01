@@ -108,6 +108,9 @@ venv.bak/
 # local folder
 *.pyc
 *#
-rawdata/
 .vscode/
-
+.DS_Store
+rawdata/
+results/
+datasets/
+plots/
