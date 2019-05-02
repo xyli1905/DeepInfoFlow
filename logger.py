@@ -1,4 +1,4 @@
-import re
+import torch
 
 class Logger(object):
     def __init__(self, opt):
@@ -6,6 +6,10 @@ class Logger(object):
         self.log_seperator = self._opt.log_seperator
         self.log_frequency = self._opt.log_frequency
         self.data = self.createDataDict()
+        self.weight_grad  = [[] for i in range(len(opt.layer_dims) - 1)] # for mean, std
+        self.weight_value = [[] for i in range(len(opt.layer_dims) - 1)] # for l2n
+        self.bias_grad    = [[] for i in range(len(opt.layer_dims) - 1)] # for mean, std
+        self.bias_value   = [[] for i in range(len(opt.layer_dims) - 1)] # for l2n
         
     def createDataDict(self):
         
@@ -30,31 +34,39 @@ class Logger(object):
                                         data[source_key][type_key][epoch_key][layer_key] = 0
         return data
 
-    def log(self, model, epoch):
+    def update(self, epoch):
         if self.needLog(epoch):
             epoch_key = "epoch" + str(epoch)
-            for i, (name, params) in enumerate(model.named_parameters()):
-                matrix = params.grad # use to calculate mean, std, l2n
-                
-                if name.endswith("weight"):
-                    layer_key = "layer" + re.findall(".*D.(.*).weight.*", name)[0]
-                    if self._opt.mean:
-                        self.data["weight"]["mean"][epoch_key][layer_key] = int(re.findall(".*D.(.*).weight.*", name)[0]) * int(re.findall(".*D.(.*).weight.*", name)[0])
-                    if self._opt.std:
-                        self.data["weight"]["std"][epoch_key][layer_key] = int(re.findall(".*D.(.*).weight.*", name)[0]) * int(re.findall(".*D.(.*).weight.*", name)[0])
-                    if self._opt.l2n:
-                        self.data["weight"]["l2n"][epoch_key][layer_key] = int(re.findall(".*D.(.*).weight.*", name)[0]) * int(re.findall(".*D.(.*).weight.*", name)[0])
+            for i in range(len(self.weight_grad)):
+                layer_key = "layer" + str(i)
+                if self._opt.mean:
+                    self.data["weight"]["mean"][epoch_key][layer_key] = self.dataParser("mean", isWeight=True)
+                    self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser("mean", isWeight=False)
+                if self._opt.std:
+                    self.data["weight"]["std"][epoch_key][layer_key] = self.dataParser("std", isWeight=True)
+                    self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser("std", isWeight=False)
+                if self._opt.l2n:
+                    self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser("l2n", isWeight=True)
+                    self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser("l2n", isWeight=False)
 
-                elif name.endswith("bias"):
-                    layer_key = "layer" + re.findall(".*D.(.*).bias.*", name)[0]
-                    if self._opt.mean:
-                        self.data["bias"]["mean"][epoch_key][layer_key] = int(re.findall(".*D.(.*).bias.*", name)[0]) * int(re.findall(".*D.(.*).bias.*", name)[0])
-                    if self._opt.std:
-                        self.data["bias"]["std"][epoch_key][layer_key] = int(re.findall(".*D.(.*).bias.*", name)[0]) * int(re.findall(".*D.(.*).bias.*", name)[0])
-                    if self._opt.l2n:
-                        self.data["bias"]["l2n"][epoch_key][layer_key] = int(re.findall(".*D.(.*).bias.*", name)[0]) * int(re.findall(".*D.(.*).bias.*", name)[0])
+    def log(self, model):
+        for i, (name, param) in enumerate(model.named_parameters()):
+            for i in range(len(self.weight_grad)):
+                self.weight_grad[i].
             
+    def dataParser(self, _type="mean", isWeight=True):
+        
+        if isWeight:
+            grad, value = self.weight_grad, self.weight_value
+        else:
+            grad, value = self.bias_grad, self.bias_value
 
+        if _type == "mean":
+            return 1
+        elif _type == "std":
+            return 2
+        elif _type == "l2n":
+            return 3
 
     def needLog(self, epoch):
         # Only log activity for some epochs.  Mainly this is to make things run faster.
