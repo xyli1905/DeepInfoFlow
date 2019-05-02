@@ -17,12 +17,12 @@ class BaseOption:
         self._parser.add_argument('--max_epoch', type=int, default=2, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=4, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight sdecay')
-        self._parser.add_argument('--layer_dims', type=list, default=[784, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
+        self._parser.add_argument('--layer_dims', type=list, default=[12, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
 
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
         self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
         self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
-        self._parser.add_argument('--dataset', type=str, default='MNIST', help='dataset')
+        self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
 
         self._parser.add_argument('--std', type=self.boolean_string, default=True, help='whether to save nets gradient standard deviation')
         self._parser.add_argument('--mean', type=self.boolean_string, default=True, help='whether to save nets gradient mean')
