@@ -113,12 +113,6 @@ class SaveActivations:
                 sys.stdout.flush()
                 print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
             
-            # for k in range(len(self._opt.layer_dims) - 1):
-            #     print(self._logger.weight_grad[k].shape)
-            #     print(self._logger.weight_value[k].shape)
-            #     print(self._logger.bias_grad[k].shape)
-            #     print(self._logger.bias_value[k].shape)
-            
             self._logger.update(i)
             
             epoch_loss = running_loss / len(self._train_set)
@@ -128,19 +122,20 @@ class SaveActivations:
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
 
-            import pprint
-            pprint.pprint(self._logger.data)
-
-
             # saving model
             # uncomment to save model
+            # self.save_model(i)
 
-            # save_full_path = self.generate_save_fullpath(i + 1)
-            # torch.save({
-            # 'epoch':i,
-            # 'model_state_dict': self._model.state_dict(),
-            # 'optimizer_state_dict': self._optimizer.state_dict(),
-            # }, save_full_path)
+            print(self._logger)
+
+    def save_model(self, epoch):
+        save_full_path = self.generate_save_fullpath(epoch + 1)
+        torch.save({
+        'epoch': epoch,
+        'model_state_dict': self._model.state_dict(),
+        'optimizer_state_dict': self._optimizer.state_dict(),
+        }, save_full_path)
+
 
     
     def generate_save_fullpath(self, epoch):

@@ -1,4 +1,5 @@
 import torch
+import pprint
 
 class Logger(object):
     def __init__(self, opt):
@@ -104,4 +105,8 @@ class Logger(object):
         for idx, val in enumerate(self.log_seperator):
             if epoch < val:
                 return epoch % self.log_frequency[idx] == 0
+
+    def __str__(self):
+        pprint.pprint(self.data)
+        return " "
 
