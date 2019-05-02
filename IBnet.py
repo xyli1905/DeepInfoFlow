@@ -101,7 +101,7 @@ class SaveActivations:
                     self._optimizer.step()
 
                     # logging for std mean and L2N
-                    self._logger.log(self._model, i)
+                    self._logger.log(self._model)
 
                     #break # for debug purpose
 
@@ -112,8 +112,12 @@ class SaveActivations:
                 running_acc += corrects
                 sys.stdout.flush()
                 print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
+            
+            self._logger.update(i)
             epoch_loss = running_loss / len(self._train_set)
             epoch_acc = running_acc.double() / len(self._train_set)
+            import pprint
+            pprint.pprint(self._logger.data)
             print("")
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
