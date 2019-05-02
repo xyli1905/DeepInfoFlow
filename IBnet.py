@@ -101,7 +101,7 @@ class SaveActivations:
                     self._optimizer.step()
 
                     # logging for std mean and L2N
-                    self._logger.log(self._model, i)
+                    self._logger.log(self._model)
 
                     #break # for debug purpose
 
@@ -112,6 +112,9 @@ class SaveActivations:
                 running_acc += corrects
                 sys.stdout.flush()
                 print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
+            
+            self._logger.update(i)
+            
             epoch_loss = running_loss / len(self._train_set)
             epoch_acc = running_acc.double() / len(self._train_set)
             print("")
@@ -119,16 +122,20 @@ class SaveActivations:
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
 
-
             # saving model
             # uncomment to save model
+            # self.save_model(i)
 
-            # save_full_path = self.generate_save_fullpath(i + 1)
-            # torch.save({
-            # 'epoch':i,
-            # 'model_state_dict': self._model.state_dict(),
-            # 'optimizer_state_dict': self._optimizer.state_dict(),
-            # }, save_full_path)
+            print(self._logger)
+
+    def save_model(self, epoch):
+        save_full_path = self.generate_save_fullpath(epoch + 1)
+        torch.save({
+        'epoch': epoch,
+        'model_state_dict': self._model.state_dict(),
+        'optimizer_state_dict': self._optimizer.state_dict(),
+        }, save_full_path)
+
 
     
     def generate_save_fullpath(self, epoch):
