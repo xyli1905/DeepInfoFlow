@@ -49,6 +49,11 @@ class SignalEmit(QWidget):
         self.datasetCombo.addItem("IBNet")
         self.datasetCombo.addItem("MNIST")
 
+        self.activationLabel = QLabel("activation: ")
+        self.activationCombo = QComboBox(self)
+        self.activationCombo.addItem("tanh")
+        self.activationCombo.addItem("relu")
+
         self.isLogMean = QCheckBox("mean")
         self.isLogStd = QCheckBox("std")
         self.isLogL2n = QCheckBox("l2n")
@@ -60,11 +65,15 @@ class SignalEmit(QWidget):
         controlsLayout = QGridLayout()
         controlsLayout.addWidget(self.learningRateLabel, 0, 0)
         controlsLayout.addWidget(self.learningRateText, 0, 1)
+
         controlsLayout.addWidget(self.maxEpochLabel, 1, 0)
         controlsLayout.addWidget(self.maxEpochText, 1, 1)
 
         controlsLayout.addWidget(self.datasetLabel, 0, 2)
         controlsLayout.addWidget(self.datasetCombo, 0, 3)
+
+        controlsLayout.addWidget(self.activationLabel, 1, 2)
+        controlsLayout.addWidget(self.activationCombo, 1, 3)
 
         controlsLayout.addWidget(self.previewButton, 0, 4)
         controlsLayout.addWidget(self.startButton, 1, 4)
@@ -91,11 +100,12 @@ class SignalEmit(QWidget):
         lr          = float(self.learningRateText.text())
         maxEpoch    = int(self.maxEpochText.text())
         dataset     = self.datasetCombo.currentText()
+        activation  = self.activationCombo.currentText()
         mean        = True if self.isLogMean.isChecked() else False
         std         = True if self.isLogStd.isChecked() else False
         l2n         = True if self.isLogL2n.isChecked() else False
-        keys = ["lr", "max_epoch", "dataset", "mean", "std", "l2n"]
-        vals = (lr, maxEpoch, dataset, mean, std, l2n)
+        keys = ["lr", "max_epoch", "dataset", "activation", "mean", "std", "l2n"]
+        vals = (lr, maxEpoch, dataset, activation, mean, std, l2n)
         config = dict(zip(keys, vals))
         return config
 
