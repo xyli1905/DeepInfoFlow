@@ -24,7 +24,6 @@ import datetime
 class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
-        self._logger = Logger(opt = self._opt)
         # check device
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self._device)
@@ -57,7 +56,10 @@ class SaveActivations:
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
 
-
+    def _update_opt(self, other):
+        for key, val in other.items():
+            setattr(self._opt, key, val)
+        self._logger = Logger(opt = self._opt)
 
     def _initialize_model(self, dims):
         # weight initialization
@@ -121,12 +123,12 @@ class SaveActivations:
             print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
             print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
             print('----------------------------------------------------------------')
-
             # saving model
             # uncomment to save model
             # self.save_model(i)
 
             print(self._logger)
+        print ('-------------------------training end--------------------------')
 
     def save_model(self, epoch):
         save_full_path = self.generate_save_fullpath(epoch + 1)
@@ -261,6 +263,4 @@ class ComputeMI:
                     print('- Layer %d %s' % (lndx, pstr) )
                 self.measures[activation][epoch] = cepochdata
 
-if __name__ == "__main__":
-    test = SaveActivations()
-    test.training_model()
+
