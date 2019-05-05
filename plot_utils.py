@@ -70,8 +70,10 @@ class PlotFigure:
         if not os.path.exists(fig_dir):
             os.mkdir(fig_dir)
 
-        fig_name = os.path.join(fig_dir, "test.eps")
-        fig.savefig(fig_name, format='eps')
+        fig_name_eps = os.path.join(fig_dir, "test.eps")
+        fig_name_jpg = os.path.join(fig_dir, "test.jpg")
+        fig.savefig(fig_name_eps, format='eps')
+        fig.savefig(fig_name_jpg, format='jpeg')
 
 
     def plot_mean_std(self):

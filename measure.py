@@ -4,14 +4,14 @@ import numpy as np
 
 class kde:
     def __init__(self):
-        pass
+        self.data = 1111
 
     def Kget_dists(self, X):
         """Torch code to compute the pairwise distance matrix for a set of
         vectors specifie by the matrix X.
         """
         x2 = torch.unsqueeze(torch.sum(torch.pow(X, 2), dim=1), dim=1)
-        dists = x2 + torch.transpose(x2, 0,1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
+        dists = x2 + torch.transpose(x2, 0, 1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
         return dists
 
 
