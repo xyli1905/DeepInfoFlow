@@ -4,7 +4,7 @@ import numpy as np
 
 class kde:
     def __init__(self):
-        self.data = 1111
+        pass
 
     def Kget_dists(self, X):
         """Torch code to compute the pairwise distance matrix for a set of
