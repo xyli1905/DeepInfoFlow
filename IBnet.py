@@ -16,6 +16,7 @@ import torch.optim as optim
 
 from model import Model
 from base_options import BaseOption
+from json_parser import JsonParser
 from logger import *
 import utils
 import datetime
@@ -29,6 +30,7 @@ class SaveActivations:
         print("device: ",self._device)
 
 
+    def apply_opt(self):
         # dataset
         if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
@@ -55,13 +57,15 @@ class SaveActivations:
         self._path_to_dir = save_root_dir + '/' + dataset + '_Time_' + time + '_Model_' + model + '/'
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
-        
-        
 
+        self._logger = Logger(opt=self._opt)
+        self._json = JsonParser(opt=self._opt, dir=self._path_to_dir)
+        
+    
     def _update_opt(self, other):
         for key, val in other.items():
             setattr(self._opt, key, val)
-        self._logger = Logger(opt = self._opt)
+
 
     def _initialize_model(self, dims):
         # weight initialization
@@ -79,7 +83,9 @@ class SaveActivations:
 
 
     def training_model(self):
+        self.apply_opt()
         print('Begin training...')
+        self._json.dump_json()
         self._model.to(self._device)
 
         # main loop for training
@@ -129,7 +135,7 @@ class SaveActivations:
             # uncomment to save model
             # self.save_model(i)
 
-            print(self._logger)
+            #print(self._logger)
         print ('-------------------------training end--------------------------')
 
     def save_model(self, epoch):
