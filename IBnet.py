@@ -59,7 +59,7 @@ class SaveActivations:
             os.makedirs(self._path_to_dir)
 
         self._logger = Logger(opt=self._opt)
-        self._json = JsonParser(opt=self._opt, dir=self._path_to_dir)
+        self._json = JsonParser()
         
     
     def _update_opt(self, other):
@@ -85,7 +85,7 @@ class SaveActivations:
     def training_model(self):
         self.apply_opt()
         print('Begin training...')
-        self._json.dump_json()
+        self._json.dump_json(opt=self._opt, path=self._path_to_dir)
         self._model.to(self._device)
 
         # main loop for training
@@ -137,7 +137,7 @@ class SaveActivations:
 
             #print(self._logger)
         print ('-------------------------training end--------------------------')
-
+        
     def save_model(self, epoch):
         save_full_path = self.generate_save_fullpath(epoch + 1)
         torch.save({
