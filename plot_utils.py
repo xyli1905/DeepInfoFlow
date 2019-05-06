@@ -67,15 +67,8 @@ class PlotFigure:
         # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) 
         fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
 
-        # set dir for InfoPlan
-        fig_dir = os.path.join(self.timestamp_dir, 'InfoPlan')
-        if not os.path.exists(fig_dir):
-            os.mkdir(fig_dir)
-
-        fig_name_eps = os.path.join(fig_dir, "test.eps")
-        fig_name_jpg = os.path.join(fig_dir, "test.jpg")
-        fig.savefig(fig_name_eps, format='eps')
-        fig.savefig(fig_name_jpg, format='jpeg')
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'InfoPlan', 'test')
 
 
     def plot_mean_std(self, Lepoch, mu, sigma):
@@ -106,16 +99,23 @@ class PlotFigure:
         ax.tick_params(labelsize=13)
 
         # set dir for mean_std; saving figure
-        fig_dir = os.path.join(self.timestamp_dir, 'Mean_and_STD')
-        if not os.path.exists(fig_dir):
-            os.mkdir(fig_dir)
-
-        fig_name = os.path.join(fig_dir, "test.eps")
-        fig.savefig(fig_name, format='eps')
+        self._save_fig(fig, 'Mean_and_STD', 'test')
 
 
     def plot_other(self):
         pass
+
+
+    def _save_fig(self, fig, dir_name, fig_name):
+        fig_dir = os.path.join(self.timestamp_dir, dir_name)
+        if not os.path.exists(fig_dir):
+            os.mkdir(fig_dir)
+
+        fig_name_eps = os.path.join(fig_dir, "{}.eps".format(fig_name))
+        fig.savefig(fig_name_eps, format='eps')
+
+        fig_name_jpg = os.path.join(fig_dir, "{}.jpg".format(fig_name))
+        fig.savefig(fig_name_jpg, format='jpeg')
 
 
 
