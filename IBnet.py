@@ -70,7 +70,7 @@ class SaveActivations:
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model(dims = dims)
+        self._model = Model(dims = dims, train=True)
         self._model.apply(weights_init)
         # optimizer 
         self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
@@ -127,9 +127,9 @@ class SaveActivations:
             print('----------------------------------------------------------------')
             # saving model
             # uncomment to save model
-            # self.save_model(i)
+            self.save_model(i)
 
-            print(self._logger)
+            # print(self._logger)
         print ('-------------------------training end--------------------------')
 
     def save_model(self, epoch):
@@ -151,3 +151,11 @@ if __name__ == "__main__":
     t = SaveActivations()
     t._update_opt({})
     t.training_model()
+    
+    # loss = nn.CrossEntropyLoss()
+    # inputs = torch.randn(64, 2, requires_grad=True)
+    # target = torch.empty(64, dtype=torch.long).random_(2)
+    # output = loss(inputs, target)
+    # print(inputs)
+    # print(target)
+    # print(output)
