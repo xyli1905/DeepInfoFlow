@@ -11,7 +11,7 @@ class kde:
         vectors specifie by the matrix X.
         """
         x2 = torch.unsqueeze(torch.sum(torch.pow(X, 2), dim=1), dim=1)
-        dists = x2 + torch.transpose(x2, 0,1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
+        dists = x2 + torch.transpose(x2, 0, 1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
         return dists
 
 

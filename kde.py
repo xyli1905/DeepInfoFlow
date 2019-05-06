@@ -40,3 +40,4 @@ def kde_condentropy(output, var):
     dims = output.shape[1]
     return (dims/2.0)*(np.log(2*np.pi*var) + 1)
 
+
