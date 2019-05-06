@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+np.random.seed()
+
 # matplotlib.use("TKAgg")
 '''NOTE
 Seem for conda env, one must create a file `matplotlibrc` at the directory `~/.matplotlib`,
@@ -38,7 +40,7 @@ class PlotFigure:
         # f, ax = plt.subplots(1,1)
         ax = fig.add_subplot(1,1,1)
 
-        #set colormap and font
+        # set colormap and font
         sm = plt.cm.ScalarMappable(cmap='gnuplot', 
                                    norm=plt.Normalize(vmin=0, vmax=1000))
         sm._A = []
@@ -65,30 +67,72 @@ class PlotFigure:
         # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) 
         fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
 
-        # set dir for InfoPlan
-        fig_dir = os.path.join(self.timestamp_dir, 'InfoPlan')
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'InfoPlan', 'test')
+
+
+    def plot_mean_std(self, Lepoch, mu, sigma):
+        '''
+        plot the variation of mean and standard devidation for each layer with respect to epoch
+
+        Lepoch    --- array of recorded epochs; of dim (Nepoch,)
+        mu, sigma --- mean & standard deviation; of dim (Nlayers, feature_dim)
+        '''
+
+        fig = plt.figure(figsize=(9,7))
+        ax = fig.add_subplot(1,1,1)
+
+        # set color and font
+        csfont = {'fontname':'Times New Roman'}
+
+        Nlayers = mu.shape[0]
+        for L in range(Nlayers):
+            ax.plot(Lepoch, mu[L,:], ls='-')
+            ax.plot(Lepoch, sigma[L,:], ls='-.')
+            
+        # ax settings
+        ax.set_xscale('log')
+        ax.set_xlabel('number of epochs', fontsize=22, **csfont)
+        ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
+        # ax.set_facecolor('#edf0f8')
+        # ax.grid(color='w', linestyle='-.', linewidth=1)
+        ax.tick_params(labelsize=13)
+
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'Mean_and_STD', 'test')
+
+
+    def plot_other(self):
+        pass
+
+
+    def _save_fig(self, fig, dir_name, fig_name):
+        fig_dir = os.path.join(self.timestamp_dir, dir_name)
         if not os.path.exists(fig_dir):
             os.mkdir(fig_dir)
 
-        fig_name_eps = os.path.join(fig_dir, "test.eps")
-        fig_name_jpg = os.path.join(fig_dir, "test.jpg")
+        fig_name_eps = os.path.join(fig_dir, "{}.eps".format(fig_name))
         fig.savefig(fig_name_eps, format='eps')
+
+        fig_name_jpg = os.path.join(fig_dir, "{}.jpg".format(fig_name))
         fig.savefig(fig_name_jpg, format='jpeg')
-
-
-    def plot_mean_std(self):
-        pass
-
 
 
 
 def main():
     '''test run
     '''
+    # test data for plot_MI_plane
     x1 = np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ])
     y1 = np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
     x2 = np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
     y2 = np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
+
+    # test data for plot_MI_plane
+    Lepoch = np.array([1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900])
+    mu = np.random.rand(1, Lepoch.shape[0])
+    sigma = np.random.rand(1, Lepoch.shape[0])
+
 
     C = type('type_C', (object,), {})
     opt = C()
@@ -98,7 +142,10 @@ def main():
     opt.timestamp = '19050310'
 
     pltfig = PlotFigure(opt)
+
     pltfig.plot_MI_plane(x1,y2,x2,y2)
+
+    pltfig.plot_mean_std(Lepoch, mu, sigma)
     
 
 
