@@ -4,11 +4,12 @@ import torch.optim as optim
 import copy
 
 class Model(nn.Module):
-    def __init__(self, dims):
+    def __init__(self, dims, train = True):
         super(Model,self).__init__()
         self.layer_dims = dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
+        self._train = train
         self.construct_model_by_name('relu')
 
 
@@ -39,15 +40,27 @@ class Model(nn.Module):
 
     def forward(self, x):
         if len(x.shape) > 2:
+            print('dsfds')
             x = x.reshape(x.shape[0], -1)
+        # if self._train:
         for i in range(len(self.layer_dims) - 1):
             dense = self.D[i]
             x = dense(x)
             if i < len(self.A):
                 activ = self.A[i]
-                x = activ(x) 
-
+                x = activ(x)
         return x
+        # else:
+        #     outputs = []
+        #     for i in range(len(self.layer_dims) - 1):
+        #         dense = self.D[i]
+        #         x = dense(x)
+        #         if i < len(self.A):
+        #             activ = self.A[i]
+        #             x = activ(x) 
+        #         outputs.append(x)
+        #     return outputs
+
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup

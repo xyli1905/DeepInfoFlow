@@ -12,6 +12,9 @@ class kde:
         """
         x2 = torch.unsqueeze(torch.sum(torch.pow(X, 2), dim=1), dim=1)
         dists = x2 + torch.transpose(x2, 0, 1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
+        # print('________________________________________________________________________________')
+        # print(dists[:10, :10])
+        # print('________________________________________________________________________________')
         return dists
 
 
@@ -19,8 +22,8 @@ class kde:
         '''
         assuming x is torch tensor
         '''
-        dims = x.size()[1].double()
-        N    = x.size()[0].double()
+        dims = x.size()[1]
+        N    = x.size()[0]
         return dims, N
     
     def entropy_estimator_kl(self, x, var):
@@ -31,11 +34,18 @@ class kde:
         '''
         dims, N = self.get_shape(x)
         dists = self.Kget_dists(x)
-        dists2 = dists / (2*var)
-        normconst = (dims/2.0)*torch.log(2*np.pi*var)
-        lprobs = torch.logsumexp(-dists2, dim=1) - torch.log(N) - normconst
+        # print('------------------------------------------------------')
+        # print(dists[:10, :10])
+        # print('------------------------------------------------------')
+        dists2 = dists / (2.0*var)
+        # print('------------------------------------------------------')
+        # print(dists2[:10, :10])
+        # print('------------------------------------------------------')
+        normconst = (dims/2.0)*np.log(2.0*np.pi*var)
+        lprobs = torch.logsumexp(-dists2, dim=1) - np.log(N) - normconst
+        # print(lprobs[:10])
         h = -torch.mean(lprobs)
-        return dims/2 + h
+        return dims/2.0 + h
 
     def entropy_estimator_bd(self, x, var):
         '''
