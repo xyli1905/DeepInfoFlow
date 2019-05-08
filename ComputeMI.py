@@ -78,12 +78,12 @@ class ComputeMI:
 
     def computeMI(self):
 
-        epoch_files = os.listdir('./results/IBNet_Time_05_05_21_31_Model_12_12_10_7_5_4_3_2_2_/')
+        epoch_files = os.listdir('./results/IBNet_Time_05_08_14_58_Model_12_12_10_7_5_4_3_2_2_/')
         for epoch_file in epoch_files:
 
-            ckpt = torch.load('./results/IBNet_Time_05_05_21_31_Model_12_12_10_7_5_4_3_2_2_/' + epoch_file)
+            ckpt = torch.load('./results/IBNet_Time_05_08_14_58_Model_12_12_10_7_5_4_3_2_2_/' + epoch_file)
             self._model.load_state_dict(ckpt['model_state_dict'])
-            # print(ckpt['model_state_dict'])
+            print(ckpt['model_state_dict'])
             epoch = ckpt['epoch']
             self._model.eval()
 

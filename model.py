@@ -42,24 +42,24 @@ class Model(nn.Module):
         if len(x.shape) > 2:
             print('dsfds')
             x = x.reshape(x.shape[0], -1)
-        # if self._train:
-        for i in range(len(self.layer_dims) - 1):
-            dense = self.D[i]
-            x = dense(x)
-            if i < len(self.A):
-                activ = self.A[i]
-                x = activ(x)
-        return x
-        # else:
-        #     outputs = []
-        #     for i in range(len(self.layer_dims) - 1):
-        #         dense = self.D[i]
-        #         x = dense(x)
-        #         if i < len(self.A):
-        #             activ = self.A[i]
-        #             x = activ(x) 
-        #         outputs.append(x)
-        #     return outputs
+        if self._train:
+            for i in range(len(self.layer_dims) - 1):
+                dense = self.D[i]
+                x = dense(x)
+                if i < len(self.A):
+                    activ = self.A[i]
+                    x = activ(x)
+            return x
+        else:
+            outputs = []
+            for i in range(len(self.layer_dims) - 1):
+                dense = self.D[i]
+                x = dense(x)
+                if i < len(self.A):
+                    activ = self.A[i]
+                    x = activ(x) 
+                outputs.append(x)
+            return outputs
 
 
 if __name__ == '__main__':
