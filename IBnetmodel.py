@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import measure
 import utils
 import time
 import sys
@@ -15,21 +16,6 @@ class IBnetModel(nn.Module):
         self._depth = len(self.layer_dims) - 1
         self.D = nn.ModuleList([])
         self._construct_model_by_name(acttype)
-        self.A = nn.ModuleList([])
-        # if acttype == 'tanh':
-        #     self.linear1 = nn.Linear(12, 12)
-        #     self.linear2 = nn.Linear(12, 10)
-        #     self.linear3 = nn.Linear(10, 7)
-        #     self.linear4 = nn.Linear(7, 5)
-        #     self.linear5 = nn.Linear(5, 4)
-        #     self.linear6 = nn.Linear(4, 3)
-        #     self.linear7 = nn.Linear(3, 2)
-        #     self.linear8 = nn.Linear(2, 2)
-        #     self.activation = nn.Tanh()
-        # elif acttype == 'relu':
-        #     raise NotImplementedError('to be finished')
-        # else:
-        #     raise ValueError('not valid type')
 
     def _construct_model_by_name(self, name):
         if name == 'tanh':
@@ -56,37 +42,6 @@ class IBnetModel(nn.Module):
                     x = self.activation(x) 
                 layer_output.append(x)
             return layer_output
-        # layer_output = []
-        # x = self.linear1(x)
-        # # h = F.tanh(x)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear2(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear3(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear4(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear5(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear6(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # x = self.linear7(h)
-        # h = self.activation(x)
-        # layer_output.append(h)
-        # output = self.linear8(h)
-        # layer_output.append(output)
-        # # x = self.linear8(h)
-        # # output = F.softmax(x)
-        # if self._is_train:
-        #     return output
-        # else:
-        #     return layer_output
 
 
 
@@ -118,7 +73,8 @@ class Train:
         print("\nIBnet experiment:\n")
 
     def train(self):
-        # train the model
+        ''' train the model
+        '''
         eta = 1.
         running_loss = 0.0
         running_acc = 0.0
@@ -152,21 +108,22 @@ class Train:
                 running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                     sys.stdout.flush()
-                    print('\repoch:{epoch} batch:{batch:2d} Loss:{loss:.5e} Acc:{acc:.5f}% numacc:{num:.0f}/{tnum:.0f}'\
-                            .format(batch=i_batch+1,
-                                    epoch=i_epoch+1, 
-                                    loss=running_loss, 
-                                    acc=running_acc*100., 
-                                    num=corrects, 
-                                    tnum=bsize)
-                         )
+                    output_format = "\repoch:{epoch} batch:{batch:2d} " +\
+                                    "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                                    "numacc:{num:.0f}/{tnum:.0f}"
+                    print(output_format.format(batch=i_batch+1,
+                                               epoch=i_epoch+1, 
+                                               loss=running_loss, 
+                                               acc=running_acc*100., 
+                                               num=corrects, 
+                                               tnum=bsize))
 
             if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                 print('{}'.format(11*'------'))        
                 # save model
                 self._save_model(i_epoch)
                 t_end = time.time()
-                print('time cost for this output interval is {:.3f}(s)'.format(t_end - t_begin))
+                print('time cost for this output period: {:.3f}(s)'.format(t_end - t_begin))
                 t_begin = time.time()
 
     def _build_model(self):
@@ -178,7 +135,8 @@ class Train:
         self._loss = nn.CrossEntropyLoss()
 
     def _initialize_model(self):
-        # weight initialization
+        ''' weight initialization
+        '''
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
@@ -271,15 +229,77 @@ if __name__ == "__main__":
     checkIBnet.check_val()
 
 
-# epoch:100 batch: 9 Loss:2.73744e-03 Acc:52.41546% numacc:158/256
-# epoch:100 batch:10 Loss:2.73738e-03 Acc:52.41633% numacc:137/256
-# epoch:100 batch:11 Loss:2.73734e-03 Acc:52.41444% numacc:128/256
-# epoch:100 batch:12 Loss:2.73728e-03 Acc:52.41927% numacc:150/256
-# epoch:100 batch:13 Loss:2.73763e-03 Acc:52.42187% numacc:116/205
-# -----------------------------------------------------------------
-# model saved at /Users/xyli1905/Projects/DeepInfoFlow/results/testIBnet/model_epoch_100.pth
 
-# IBnet debug:
 
-# -----------------------------
-# tensor([-0.1090,  0.1376], grad_fn=<SelectBackward>)
+# testing model setting
+# --------------------------------------------------
+# self.A = nn.ModuleList([])
+# if acttype == 'tanh':
+#     self.linear1 = nn.Linear(12, 12)
+#     self.linear2 = nn.Linear(12, 10)
+#     self.linear3 = nn.Linear(10, 7)
+#     self.linear4 = nn.Linear(7, 5)
+#     self.linear5 = nn.Linear(5, 4)
+#     self.linear6 = nn.Linear(4, 3)
+#     self.linear7 = nn.Linear(3, 2)
+#     self.linear8 = nn.Linear(2, 2)
+#     self.activation = nn.Tanh()
+# elif acttype == 'relu':
+#     raise NotImplementedError('to be finished')
+# else:
+#     raise ValueError('not valid type')
+
+
+# testing forward:
+# ----------------------------------
+# def forward(self, x):
+#     layer_output = []
+#     x = self.linear1(x)
+#     # h = F.tanh(x)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear2(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear3(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear4(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear5(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear6(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     x = self.linear7(h)
+#     h = self.activation(x)
+#     layer_output.append(h)
+#     output = self.linear8(h)
+#     layer_output.append(output)
+#     # x = self.linear8(h)
+#     # output = F.softmax(x)
+#     if self._is_train:
+#         return output
+#     else:
+#         return layer_output
+
+# typical output:
+# ------------------------------------------------------------------
+# epoch:1000 batch: 1 Loss:8.53674e-04 Acc:95.61326% numacc:255/256
+# epoch:1000 batch: 2 Loss:8.53662e-04 Acc:95.61339% numacc:249/256
+# epoch:1000 batch: 3 Loss:8.53658e-04 Acc:95.61343% numacc:246/256
+# epoch:1000 batch: 4 Loss:8.53657e-04 Acc:95.61343% numacc:245/256
+# epoch:1000 batch: 5 Loss:8.53650e-04 Acc:95.61350% numacc:247/256
+# epoch:1000 batch: 6 Loss:8.53629e-04 Acc:95.61375% numacc:253/256
+# epoch:1000 batch: 7 Loss:8.53625e-04 Acc:95.61379% numacc:246/256
+# epoch:1000 batch: 8 Loss:8.53609e-04 Acc:95.61398% numacc:251/256
+# epoch:1000 batch: 9 Loss:8.53596e-04 Acc:95.61414% numacc:250/256
+# epoch:1000 batch:10 Loss:8.53580e-04 Acc:95.61433% numacc:251/256
+# epoch:1000 batch:11 Loss:8.53566e-04 Acc:95.61449% numacc:250/256
+# epoch:1000 batch:12 Loss:8.53553e-04 Acc:95.61465% numacc:250/256
+# epoch:1000 batch:13 Loss:8.53544e-04 Acc:95.61486% numacc:203/205
+# ------------------------------------------------------------------
+# model saved at /Users/xyli1905/Projects/DeepInfoFlow/results/testIBnet/model_epoch_1000.pth
+# time cost for this output interval is 4.529(s)
