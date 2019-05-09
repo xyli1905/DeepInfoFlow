@@ -65,6 +65,9 @@ class Train:
         self._name = 'train_testIBnet'
         self._fdir = "/Users/xyli1905/Projects/DeepInfoFlow/results/testIBnet"
 
+        if not os.path.exists(self._fdir):
+            os.mkdir(self._fdir)
+
         self._num_epoch = 1000
         self._batch_size = 256
         self._lr = 0.0004
