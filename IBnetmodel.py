@@ -48,7 +48,7 @@ class IBnetModel(nn.Module):
 class Train:
     def __init__(self):
         self._name = 'train_testIBnet'
-        self._fdir = "/Users/xyli1905/Projects/DeepInfoFlow/results/testIBnet"
+        self._fdir = "./results/testIBnet"
         self._save_step = 100
 
         if not os.path.exists(self._fdir):
@@ -158,7 +158,7 @@ class Train:
 class TestDebug:
     def __init__(self):
         self._name = 'testDebug_IBnet'
-        self._fdir = "/Users/xyli1905/Projects/DeepInfoFlow/results/testIBnet"
+        self._fdir = "./results/testIBnet"
 
         self._layer_dims = [12, 12, 10, 7, 5, 4, 3, 2, 2]
         self._acttype = 'tanh'
