@@ -21,6 +21,8 @@ from logger import *
 import utils
 import datetime
 
+import time
+
 
 class SaveActivations:
     def __init__(self):
@@ -83,57 +85,69 @@ class SaveActivations:
 
 
     def training_model(self):
+
         self.apply_opt()
-        print('Begin training...')
         self._json.dump_json(opt=self._opt, path=self._path_to_dir)
-        self._model.to(self._device)
+        print('Begin training...')
+        self._model = self._model.to(self._device)
+
+        save_step = 100
+
+        eta = 1.
+        running_loss = 0.0
+        running_acc = 0.0
+        t_begin = time.time()
 
         # main loop for training
-        for i in range(0, self._opt.max_epoch):
+        for i_epoch in range(self._opt.max_epoch):
             # set to train
             self._model.train()
-            running_loss = 0.0
-            running_acc = 0.0
-            # batch training
-            for j , (inputs, labels) in enumerate(self._train_set):
+
+            # train batch
+            if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                print('\n{}'.format(11*'------'))
+
+            for i_batch , (inputs, labels) in enumerate(self._train_set):
                 inputs = inputs.to(self._device)
                 labels = labels.to(self._device)
+                bsize = inputs.shape[0]
                 # set to learnable
                 with torch.set_grad_enabled(True):
+                    #forward
                     outputs = self._model(inputs)
                     loss = self._criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
+                    corrects = torch.sum(preds == labels.data).double()
 
+                    # backprop
                     self._optimizer.zero_grad()
-
                     loss.backward()
-
                     self._optimizer.step()
 
-                    # logging for std mean and L2N
-                    self._logger.log(self._model)
+                # monitor the running loss & running accuracy
+                eta = eta / (1. + bsize*eta)
+                running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
+                running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                    sys.stdout.flush()
+                    output_format = "\repoch:{epoch} batch:{batch:2d} " +\
+                                    "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                                    "numacc:{num:.0f}/{tnum:.0f}"
+                    print(output_format.format(batch=i_batch+1,
+                                               epoch=i_epoch+1, 
+                                               loss=running_loss, 
+                                               acc=running_acc*100., 
+                                               num=corrects, 
+                                               tnum=bsize))
 
-                    #break # for debug purpose
+            if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                print('{}'.format(11*'------'))        
+                t_end = time.time()
+                print('time cost for this output period: {:.3f}(s)'.format(t_end - t_begin))
+                t_begin = time.time()
 
-
-                # acc and loss calculation
-                running_loss += loss * inputs.size(0)
-                corrects = torch.sum(preds == labels.data).double()
-                running_acc += corrects
-                sys.stdout.flush()
-                print('\repoch:{epoch} Loss: {loss:.6f} acc:{acc:.6f}'.format(epoch=i+1, loss=loss, acc=corrects), end="")
-            
-            self._logger.update(i)
-            
-            epoch_loss = running_loss / len(self._train_set)
-            epoch_acc = running_acc.double() / len(self._train_set)
-            print("")
-            print('------------------summary epoch {epoch} ------------------------'.format(epoch = i+1))
-            print('Loss {loss:.6f} acc:{acc:.6f}'.format( loss=epoch_loss, acc=epoch_acc))
-            print('----------------------------------------------------------------')
-            # saving model
-            # uncomment to save model
-            self.save_model(i)
+            # saving model for each epoch
+            self.save_model(i_epoch)
 
             # print(self._logger)
         print ('-------------------------training end--------------------------')

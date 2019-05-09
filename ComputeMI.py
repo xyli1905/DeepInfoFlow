@@ -19,8 +19,8 @@ class ComputeMI:
 
         train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
         test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-        self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True, num_workers=1)
-        self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, num_workers=1)
+        self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=1)
+        self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=1)
 
 
         # elif self._opt.dataset == "IBNet":
@@ -42,7 +42,7 @@ class ComputeMI:
         # self.DO_LOWER       = (self.infoplane_measure == 'lower')   # Whether to compute lower bounds also
         # self.DO_BINNED      = (self.infoplane_measure == 'bin')     # Whether to compute MI estimates based on binning
         # self.MAX_EPOCHS = 10000      # Max number of epoch for which to compute mutual information measure
-        # self.NUM_LABELS = 2
+        self.NUM_LABELS = 2
         # # self.MAX_EPOCHS = 1000
         # self.COLORBAR_MAX_EPOCHS = 10000
         # self.ARCH = '12-10-7-5-4-3-2'
@@ -64,24 +64,29 @@ class ComputeMI:
 
     def get_saved_labelixs_and_labelprobs(self):
         saved_labelixs = {}
-        y = self.tst.y
-        Y = self.tst.Y
-        if self.FULL_MI:
-            full = utils.construct_full_dataset(self.trn, self.tst)
-            y = full.y
-            Y = full.Y
-        for i in range(self.NUM_LABELS):
-            saved_labelixs[i] = y == i
-        labelprobs = np.mean(Y, axis=0)
+        
+        # if self.FULL_MI:
+        #     full = utils.construct_full_dataset(self.trn, self.tst)
+        #     y = full.y
+        #     Y = full.Y
+        # for i in range(self.NUM_LABELS):
+        #     saved_labelixs[i] = y == i
+        # labelprobs = np.mean(Y, axis=0)
 
-        return saved_labelixs, labelprobs
+        # return saved_labelixs, labelprobs
+        index = 0
+        for i, (data, label) in enumerate(self._test_set):
+            index += 1
+            if index > 100:
+                break
 
     def computeMI(self):
 
-        epoch_files = os.listdir('./results/IBNet_Time_05_08_14_58_Model_12_12_10_7_5_4_3_2_2_/')
+        epoch_files = os.listdir('./results/IBNet_Time_05_09_15_19_Model_12_12_10_7_5_4_3_2_2_/')
         for epoch_file in epoch_files:
-
-            ckpt = torch.load('./results/IBNet_Time_05_08_14_58_Model_12_12_10_7_5_4_3_2_2_/' + epoch_file)
+            if not epoch_file.endswith('.pth'):
+                continue
+            ckpt = torch.load('./results/IBNet_Time_05_09_15_19_Model_12_12_10_7_5_4_3_2_2_/' + epoch_file)
             self._model.load_state_dict(ckpt['model_state_dict'])
             print(ckpt['model_state_dict'])
             epoch = ckpt['epoch']
@@ -90,10 +95,11 @@ class ComputeMI:
             layer_activity = []
             X = []
             Y = []
+            saved_labelixs = []
             for j, (inputs, labels) in enumerate(self._test_set):
                 outputs = self._model(inputs)
-                print(outputs[5])
-                print(outputs[6])
+                # print(outputs[5])
+                # print(outputs[6])
                 Y.append(labels)
                 X.append(inputs)
                 for i in range(len(outputs)):
@@ -102,15 +108,11 @@ class ComputeMI:
                         layer_activity.append(data)
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
-            # print('-----------------------------')
-            # print(layer_activity[6][101])
-            # print('-----------------------------')
             
             for layer in layer_activity:
-                # print('-----------------------------')
-                # print(layer[100])
-                # print('-----------------------------')
-                test = self.measure.entropy_estimator_kl(layer, 0.001)
+                upper = self.measure.entropy_estimator_kl(layer, 0.001)
+                hM_given_X = self.measure.kde_condentropy(layer, 0.001)
+                print(upper - hM_given_X)
                 # print(test)
 
 
@@ -184,4 +186,5 @@ class ComputeMI:
 
 if __name__ == "__main__":
     t = ComputeMI()
-    t.computeMI()
+    # t.computeMI()
+    t.get_saved_labelixs_and_labelprobs()

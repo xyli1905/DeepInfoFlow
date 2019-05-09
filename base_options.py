@@ -14,7 +14,7 @@ class BaseOption:
         self._parser.add_argument('--batch_size', type=int, default=256, help='number of data points in one batch')
         self._parser.add_argument('--lr', type=float, default=0.04, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=10, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=1000, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=4, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight sdecay')
         self._parser.add_argument('--layer_dims', type=list, default=[12, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
