@@ -5,6 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+
 from plot_utils import *
 
 class QtPlot(QWidget):
@@ -16,22 +17,24 @@ class QtPlot(QWidget):
         self.top = 100
         self.width = 640
         self.height = 480
+        self.opt = opt
         self.initUI()
+
     
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left[0] if opt.type == 'Mean_and_STD' else  self.left[1], \
+        self.setGeometry(self.left[0] if self.opt.type == 'Mean_and_STD' else  self.left[1], \
                         self.top, self.width, self.height)
     
         label = QLabel(self)
         img = self.load_img()
         label.setPixmap(img)
         self.resize(img.width(),img.height())
-        
         self.show()
+        print(2222222222)
 
     def load_img(self):
-        img_path = os.path.join(opt.plot_dir, opt.model_name, opt.timestamp, opt.type, "test.jpg")
+        img_path = os.path.join(self.opt.plot_dir, self.opt.model_name, self.opt.timestamp, self.opt.type, "test.jpg")
         img = QPixmap(img_path)
         return img
 
