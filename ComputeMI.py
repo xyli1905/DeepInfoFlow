@@ -4,36 +4,42 @@ import measure
 import utils
 import os
 from model import Model
+from json_parser import JsonParser
+import time
 
 
 class ComputeMI:
     def __init__(self):
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+        load_config = JsonParser()
+        self.path ='./results/' + 'IBNet_Time_05_09_18_05_Model_12_12_10_7_5_4_3_2_2_' + '/'
+        self._opt = load_config.read_json_as_argparse(self.path)
+
+        # force the batch size to 1 for calculation convinience
+        self._opt.batch_size = 1
         # dataset
-        # if self._opt.dataset == "MNIST":
-        #     train_data, test_data = utils.get_mnist()
-        #     self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-        #     self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-        #     self._initialize_model(dims = self._opt.layer_dims)
-        #     print("MNIST experiment")
+        if self._opt.dataset == "MNIST":
+            train_data, test_data = utils.get_mnist()
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            print("MNIST experiment")
 
-        train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
-        test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-        self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=1)
-        self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=1)
+        # train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
+        # test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
+        # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=1)
+        # self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=1)
 
 
-        # elif self._opt.dataset == "IBNet":
-        #     train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
-        #     test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-        #     self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-        #     self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-        #     self._initialize_model(dims = self._opt.layer_dims)
-        #     print("IBnet experiment")
-        # else:
-        #     raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
+        elif self._opt.dataset == "IBNet":
+            train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
+            test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            print("IBnet experiment")
+        else:
+            raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
 
-        self._model = Model(dims = [12, 12, 10, 7, 5, 4, 3, 2, 2], train = False)
+        self._model = Model(dims = self._opt.layer_dims, train = False)
 
 
         # self.FULL_MI = True
@@ -56,50 +62,41 @@ class ComputeMI:
         self.measure = measure.kde()
 
 
-    # def get_entropy_bound(self):
-    #     Klayer_activity = K.placeholder(ndim=2)  # Keras placeholder 
-    #     entropy_func_upper = K.function([Klayer_activity,], [kde.entropy_estimator_kl(Klayer_activity, noise_variance),])
-    #     entropy_func_lower = K.function([Klayer_activity,], [kde.entropy_estimator_bd(Klayer_activity, noise_variance),])
-    #     return entropy_func_upper, entropy_func_lower
-
     def get_saved_labelixs_and_labelprobs(self):
         saved_labelixs = {}
-        
-        # if self.FULL_MI:
-        #     full = utils.construct_full_dataset(self.trn, self.tst)
-        #     y = full.y
-        #     Y = full.Y
-        # for i in range(self.NUM_LABELS):
-        #     saved_labelixs[i] = y == i
-        # labelprobs = np.mean(Y, axis=0)
-
-        # return saved_labelixs, labelprobs
-        index = 0
+        labelprobs = []
+        num_samples = 0
         for i, (data, label) in enumerate(self._test_set):
-            index += 1
-            if index > 100:
-                break
+            if label.item() not in saved_labelixs.keys():
+                saved_labelixs[label.item()] = [i]
+            else:
+                saved_labelixs[label.item()].append(i)
+            num_samples = i+1
+
+        for key in sorted(saved_labelixs.keys()):
+            labelprobs.append(len(saved_labelixs[key]) / num_samples)
+
+
+        return saved_labelixs, labelprobs
 
     def computeMI(self):
+        saved_labelixs, labelprobs = self.get_saved_labelixs_and_labelprobs()
 
-        epoch_files = os.listdir('./results/IBNet_Time_05_09_15_19_Model_12_12_10_7_5_4_3_2_2_/')
+        epoch_files = os.listdir(self.path)
+        start = time.time()
         for epoch_file in epoch_files:
             if not epoch_file.endswith('.pth'):
                 continue
-            ckpt = torch.load('./results/IBNet_Time_05_09_15_19_Model_12_12_10_7_5_4_3_2_2_/' + epoch_file)
+            ckpt = torch.load(self.path + epoch_file)
             self._model.load_state_dict(ckpt['model_state_dict'])
-            print(ckpt['model_state_dict'])
             epoch = ckpt['epoch']
             self._model.eval()
 
             layer_activity = []
             X = []
             Y = []
-            saved_labelixs = []
             for j, (inputs, labels) in enumerate(self._test_set):
                 outputs = self._model(inputs)
-                # print(outputs[5])
-                # print(outputs[6])
                 Y.append(labels)
                 X.append(inputs)
                 for i in range(len(outputs)):
@@ -108,83 +105,23 @@ class ComputeMI:
                         layer_activity.append(data)
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
-            
             for layer in layer_activity:
                 upper = self.measure.entropy_estimator_kl(layer, 0.001)
                 hM_given_X = self.measure.kde_condentropy(layer, 0.001)
-                print(upper - hM_given_X)
-                # print(test)
+                # print(upper - hM_given_X)
 
 
+                hM_given_Y_upper=0.
+                for i, key in enumerate(sorted(saved_labelixs.keys())):
+                    hcond_upper = self.measure.entropy_estimator_kl(layer[saved_labelixs[key]], 0.001)
+                    hM_given_Y_upper += labelprobs[i] * hcond_upper
+                # print(upper - hM_given_Y_upper)
+            # print('------------------------------epoch {epoch}------------------------------'.format(epoch = epoch))
+        end = time.time()
+        print(end - start)
 
-
-        # entropy_func_upper, entropy_func_lower = self.get_entropy_bound()
-        # saved_labelixs, labelprobs = self.get_saved_labelixs_and_labelprobs()
-        
-        # for activation in self.measures.keys():
-        #     cur_dir = 'rawdata/' + self.DIR_TEMPLATE % activation
-        #     if not os.path.exists(cur_dir):
-        #         print("Directory %s not found" % cur_dir)
-        #         continue
-        #     # Load files saved during each epoch, and compute MI measures of the activity in that epoch
-        #     print('*** Doing %s ***' % cur_dir)
-        #     for epochfile in sorted(os.listdir(cur_dir)):
-        #         if not epochfile.startswith('epoch'):
-        #             continue
-        #         fname = cur_dir + "/" + epochfile
-        #         with open(fname, 'rb') as f:
-        #             d = pickle.load(f)
-        #         epoch = d['epoch']
-        #         if epoch in self.measures[activation]: # Skip this epoch if its already been processed
-        #             continue                      # this is a trick to allow us to rerun this cell multiple times)
-        #         if epoch > self.MAX_EPOCHS:
-        #             continue
-        #         print("Doing", fname)
-        #         num_layers = len(d['data']['activity_tst'])
-        #         if self.PLOT_LAYERS is None:
-        #             self.PLOT_LAYERS = []
-        #             for lndx in range(num_layers):
-        #                 #if d['data']['activity_tst'][lndx].shape[1] < 200 and lndx != num_layers - 1:
-        #                 self.PLOT_LAYERS.append(lndx)
-        #         cepochdata = defaultdict(list)
-        #         for lndx in range(num_layers):
-        #             activity = d['data']['activity_tst'][lndx]
-        #             # Compute marginal entropies
-        #             h_upper = entropy_func_upper([activity,])[0]
-        #             if self.DO_LOWER:
-        #                 h_lower = entropy_func_lower([activity,])[0]
-        #             # Layer activity given input. This is simply the entropy of the Gaussian noise
-        #             hM_given_X = kde.kde_condentropy(activity, self.noise_variance)
-        #             # Compute conditional entropies of layer activity given output
-        #             hM_given_Y_upper=0.
-        #             for i in range(self.NUM_LABELS):
-        #                 hcond_upper = entropy_func_upper([activity[saved_labelixs[i],:],])[0]
-        #                 hM_given_Y_upper += labelprobs[i] * hcond_upper
-        #             if self.DO_LOWER:
-        #                 hM_given_Y_lower=0.
-        #                 for i in range(self.NUM_LABELS):
-        #                     hcond_lower = entropy_func_lower([activity[saved_labelixs[i],:],])[0]
-        #                     hM_given_Y_lower += labelprobs[i] * hcond_lower
-        #             cepochdata['MI_XM_upper'].append( self.nats2bits * (h_upper - hM_given_X) )
-        #             cepochdata['MI_YM_upper'].append( self.nats2bits * (h_upper - hM_given_Y_upper) )
-        #             cepochdata['H_M_upper'  ].append( self.nats2bits * h_upper )
-        #             pstr = 'upper: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (cepochdata['MI_XM_upper'][-1], cepochdata['MI_YM_upper'][-1])
-                    
-        #             if self.DO_LOWER:  # Compute lower bounds
-        #                 cepochdata['MI_XM_lower'].append(self.nats2bits * (h_lower - hM_given_X) )
-        #                 cepochdata['MI_YM_lower'].append(self.nats2bits * (h_lower - hM_given_Y_lower) )
-        #                 cepochdata['H_M_lower'  ].append(self.nats2bits * h_lower )
-        #                 pstr += ' | lower: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (cepochdata['MI_XM_lower'][-1], cepochdata['MI_YM_lower'][-1])
-
-        #             if self.DO_BINNED: # Compute binned estimates
-        #                 binxm, binym = simplebinmi.bin_calc_information2(saved_labelixs, activity, self.binsize)
-        #                 cepochdata['MI_XM_bin'].append( self.nats2bits * binxm )
-        #                 cepochdata['MI_YM_bin'].append( self.nats2bits * binym )
-        #                 pstr += ' | bin: MI(X;M)=%0.3f, MI(Y;M)=%0.3f' % (cepochdata['MI_XM_bin'][-1], cepochdata['MI_YM_bin'][-1])
-        #             print('- Layer %d %s' % (lndx, pstr) )
-        #         self.measures[activation][epoch] = cepochdata
 
 if __name__ == "__main__":
     t = ComputeMI()
-    # t.computeMI()
-    t.get_saved_labelixs_and_labelprobs()
+    t.computeMI()
+    # t.get_saved_labelixs_and_labelprobs()
