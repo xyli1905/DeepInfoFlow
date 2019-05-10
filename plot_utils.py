@@ -56,8 +56,8 @@ class PlotFigure:
         ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize=22)
         ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize=22)
-        ax.set_xlim(0,1)
-        ax.set_ylim(0,1)
+        # ax.set_xlim(0,1)
+        # ax.set_ylim(0,1)
         ax.set_aspect('equal', adjustable='box')
         ax.set_facecolor('#edf0f8')
         ax.grid(color='w', linestyle='-.', linewidth=1)
@@ -137,8 +137,8 @@ def main():
     opt = C()
 
     opt.plot_dir = './plots'
-    opt.model_name = 'testdrawing'
-    opt.timestamp = '19050310'
+    opt.experiment_name = 'testdrawing'
+    # opt.timestamp = '19050310'
 
     pltfig = PlotFigure(opt)
 
