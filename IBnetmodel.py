@@ -176,6 +176,8 @@ class TestDebug:
                                                       num_workers=1)
         print("\nIBnet debug:\n")
 
+        self.measure = measure.kde()
+
     def check_val(self):
         # epoch_files = os.listdir(self._fdir)
         # for epoch_file in epoch_files:
@@ -205,24 +207,24 @@ class TestDebug:
                     layer_activity.append(data)
                 else:
                     layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
-        print('-----------------------------')
-        print(layer_activity[6][101])
-        print('-----------------------------')
+        # print('-----------------------------')
+        # print(layer_activity[6][101])
+        # print('-----------------------------')
         
-        # for layer in layer_activity:
-        #     print('-----------------------------')
-        #     print(layer[100])
-        #     print('-----------------------------')
-        #     # test = self.measure.entropy_estimator_kl(layer, 0.001)
-        #     # print(test)
+        for layer in layer_activity:
+            # print('-----------------------------')
+            # print(layer[100])
+            # print('-----------------------------')
+            test = self.measure.entropy_estimator_kl(layer, 0.001)
+            print(test)
 
 
 
 
 if __name__ == "__main__":
     #train IBnet
-    testIBnet = Train()
-    testIBnet.train()
+    # testIBnet = Train()
+    # testIBnet.train()
 
     #test debug
     checkIBnet = TestDebug()
