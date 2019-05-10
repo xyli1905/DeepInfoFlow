@@ -1,6 +1,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 import os
 
 np.random.seed()
@@ -23,16 +24,17 @@ class PlotFigure:
             os.mkdir(opt.plot_dir)
 
         # set saving directory for present model
-        self.model_dir = os.path.join(opt.plot_dir, opt.model_name)
-        if not os.path.exists(self.model_dir):
-            os.mkdir(self.model_dir)
+        self.experiment_dir = os.path.join(opt.plot_dir, opt.experiment_name)
+        if not os.path.exists(self.experiment_dir):
+            os.mkdir(self.experiment_dir)
 
         # set timestamp to distinguish same model at differet training
-        self.timestamp_dir = os.path.join(self.model_dir, opt.timestamp)
+        timestamp = datetime.datetime.today().strftime('%m_%d_%H_%M')
+        self.timestamp_dir = os.path.join(self.experiment_dir, timestamp)
         if not os.path.exists(self.timestamp_dir):
             os.mkdir(self.timestamp_dir)
 
-    def plot_MI_plane(self, x1,y1,x2,y2):
+    def plot_MI_plane(self, MI_X_T, MI_Y_T):
         '''
         plot evolution of mutual information for each layer at different eporchs
         '''
@@ -42,24 +44,21 @@ class PlotFigure:
 
         # set colormap and font
         sm = plt.cm.ScalarMappable(cmap='gnuplot', 
-                                   norm=plt.Normalize(vmin=0, vmax=1000))
+                                   norm=plt.Normalize(vmin=0, vmax=self._opt.max_epoch))
         sm._A = []
         csfont = {'fontname':'Times New Roman'}
-
-        ##-will be loop over epoch
-        ax.plot(x1,y1, c=sm.to_rgba(600), alpha=0.1, zorder=1)
-        ax.scatter(x1,y1, s=60, facecolor=sm.to_rgba(600), zorder=2)
-
-        ax.plot(x2,y2, c=sm.to_rgba(200), alpha=0.1, zorder=1)
-        ax.scatter(x2,y2, s=60, facecolor=sm.to_rgba(200), zorder=2)
-        ##-
+        
+        Lepoch = MI_X_T.keys()
+        for epoch in Lepoch:
+            ax.plot(MI_X_T[epoch], MI_Y_T[epoch], c=sm.to_rgba(epoch), alpha=0.1, zorder=1)
+            ax.scatter(MI_X_T[epoch], MI_Y_T[epoch], s=60, facecolor=sm.to_rgba(epoch), zorder=2)
 
         ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize=22)
         ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize=22)
-        ax.set_xlim(0,1)
+        ax.set_xlim(0,8)
         ax.set_ylim(0,1)
-        ax.set_aspect('equal', adjustable='box')
+        ax.set_aspect(1. / ax.get_data_ratio())
         ax.set_facecolor('#edf0f8')
         ax.grid(color='w', linestyle='-.', linewidth=1)
         ax.tick_params(labelsize=13)
@@ -138,12 +137,12 @@ def main():
     opt = C()
 
     opt.plot_dir = './plots'
-    opt.model_name = 'testdrawing'
-    opt.timestamp = '19050310'
+    opt.experiment_name = 'testdrawing'
+    # opt.timestamp = '19050310'
 
     pltfig = PlotFigure(opt)
 
-    pltfig.plot_MI_plane(x1,y2,x2,y2)
+    # pltfig.plot_MI_plane(x1,y2,x2,y2)
 
     pltfig.plot_mean_std(Lepoch, mu, sigma)
     

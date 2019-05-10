@@ -6,13 +6,14 @@ import os
 from model import Model
 from json_parser import JsonParser
 import time
+from plot_utils import PlotFigure
 
 
 class ComputeMI:
     def __init__(self):
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser()
-        self.path ='./results/' + 'IBNet_Time_05_09_18_05_Model_12_12_10_7_5_4_3_2_2_' + '/'
+        self.path =os.path.join('./results', 'IBNet_IB_net_test_1__Time_05_09_21_31_Model_12_12_10_7_5_4_3_2_2_')
         self._opt = load_config.read_json_as_argparse(self.path)
 
         # force the batch size to 1 for calculation convinience
@@ -20,8 +21,8 @@ class ComputeMI:
         # dataset
         if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
-            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
             print("MNIST experiment")
 
         # train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
@@ -33,11 +34,11 @@ class ComputeMI:
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
+            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
+            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
             print("IBnet experiment")
         else:
-            raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = dataset))
+            raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
 
         self._model = Model(dims = self._opt.layer_dims, train = False)
 
@@ -84,17 +85,29 @@ class ComputeMI:
 
         epoch_files = os.listdir(self.path)
         start = time.time()
+
+        IX = {}
+        IY = {}
+
+        nats2bits = 1.0/np.log(2)
+
         for epoch_file in epoch_files:
             if not epoch_file.endswith('.pth'):
                 continue
-            ckpt = torch.load(self.path + epoch_file)
-            self._model.load_state_dict(ckpt['model_state_dict'])
+
+            ckpt = torch.load(os.path.join(self.path, epoch_file))
             epoch = ckpt['epoch']
+            #check if this epoch need to be calculated
+            if not self.needLog(epoch):
+                continue
+
+            self._model.load_state_dict(ckpt['model_state_dict'])
             self._model.eval()
 
             layer_activity = []
             X = []
             Y = []
+
             for j, (inputs, labels) in enumerate(self._test_set):
                 outputs = self._model(inputs)
                 Y.append(labels)
@@ -105,23 +118,48 @@ class ComputeMI:
                         layer_activity.append(data)
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
+
+            IX_epoch = []
+            IY_epoch = []
             for layer in layer_activity:
                 upper = self.measure.entropy_estimator_kl(layer, 0.001)
                 hM_given_X = self.measure.kde_condentropy(layer, 0.001)
-                # print(upper - hM_given_X)
+
+                mutual_info_X = upper - hM_given_X
+                IX_epoch.append(mutual_info_X.item() * nats2bits)
 
 
                 hM_given_Y_upper=0.
                 for i, key in enumerate(sorted(saved_labelixs.keys())):
                     hcond_upper = self.measure.entropy_estimator_kl(layer[saved_labelixs[key]], 0.001)
                     hM_given_Y_upper += labelprobs[i] * hcond_upper
-                # print(upper - hM_given_Y_upper)
-            # print('------------------------------epoch {epoch}------------------------------'.format(epoch = epoch))
+
+                mutual_info_Y = upper - hM_given_Y_upper
+                IY_epoch.append(mutual_info_Y.item() * nats2bits)
+
+            assert len(IX_epoch) == 8, "layer dims error"
+            assert len(IY_epoch) == 8, "layer dims error"
+
+            if epoch not in IX.keys() and epoch not in IY.keys():
+                IX[epoch] = IX_epoch
+                IY[epoch] = IY_epoch
+            else:
+                raise RuntimeError('epoch is duplicated')
+
         end = time.time()
+        plotter = PlotFigure(self._opt)
+        plotter.plot_MI_plane(IX, IY)
         print(end - start)
+
+
+    def needLog(self, epoch):
+        # Only log activity for some epochs.  Mainly this is to make things run faster.
+        assert len(self._opt.log_seperator) == len(self._opt.log_frequency), "sha bi"
+        for idx, val in enumerate(self._opt.log_seperator):
+            if epoch < val:
+                return epoch % self._opt.log_frequency[idx] == 0
 
 
 if __name__ == "__main__":
     t = ComputeMI()
     t.computeMI()
-    # t.get_saved_labelixs_and_labelprobs()
