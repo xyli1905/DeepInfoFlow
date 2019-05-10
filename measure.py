@@ -34,16 +34,9 @@ class kde:
         '''
         dims, N = self.get_shape(x)
         dists = self.Kget_dists(x)
-        # print('------------------------------------------------------')
-        # print(dists[:10, :10])
-        # print('------------------------------------------------------')
         dists2 = dists / (2.0*var)
-        # print('------------------------------------------------------')
-        # print(dists2[:10, :10])
-        # print('------------------------------------------------------')
         normconst = (dims/2.0)*np.log(2.0*np.pi*var)
         lprobs = torch.logsumexp(-dists2, dim=1) - np.log(N) - normconst
-        # print(lprobs[:10])
         h = -torch.mean(lprobs)
         return dims/2.0 + h
 
