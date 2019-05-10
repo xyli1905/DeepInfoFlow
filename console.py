@@ -1,16 +1,26 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import os
 import sys
 import pprint
 from IBnet import SaveActivations
+import cv2 as cv
 
-class SignalEmit(QWidget):
+class Console(QWidget):
     StartSignal = pyqtSignal(dict)
     previewSignal = pyqtSignal(dict)
     def __init__(self):
         super().__init__()        
         self.initUI()
+
+        # for test
+        C = type('type_C', (object,), {})
+        self.opt = C()
+        self.opt.plot_dir = './plots'
+        self.opt.model_name = 'testdrawing'
+        self.opt.timestamp = '19050310'
+        
 
     def initUI(self):           
 
@@ -27,14 +37,22 @@ class SignalEmit(QWidget):
 
         self.startButton.clicked.connect(self.emitStartSignal)
         self.previewButton.clicked.connect(self.emitPreviewSignal)
+        self.computeMIButton.clicked.connect(self.emitcomputeMISignal)
+        self.InfoPlanButton.clicked.connect(self.emitInfoPlanSignal)
+        self.Mean_and_STDButton.clicked.connect(self.emitMean_and_STDSignal)
 
-        self.setGeometry(300, 300, 290, 150)
+
+        self.setGeometry(300, 300, 360, 250)
         self.setWindowTitle('DeepInfoFlow Console')
         self.show()
 
     def configControls(self):
         self.startButton = QPushButton("start train")
         self.previewButton  = QPushButton("preview")
+
+        self.computeMIButton  = QPushButton("compute MI")
+        self.InfoPlanButton = QPushButton("InfoPlan")
+        self.Mean_and_STDButton  = QPushButton("Mean_and_STD")
 
         self.learningRateLabel = QLabel("learning rate: ")
         self.learningRateText = QLineEdit(self)
@@ -81,6 +99,12 @@ class SignalEmit(QWidget):
         controlsLayout.addWidget(self.isLogMean, 2, 0)
         controlsLayout.addWidget(self.isLogStd, 2, 1)
         controlsLayout.addWidget(self.isLogL2n, 2, 2)
+
+        controlsLayout.addWidget(self.computeMIButton, 3, 0)
+        controlsLayout.addWidget(self.InfoPlanButton, 3, 1)
+        controlsLayout.addWidget(self.Mean_and_STDButton, 3, 2)
+        
+
         return controlsLayout
 
     def creatControls(self, title):
@@ -117,6 +141,18 @@ class SignalEmit(QWidget):
         config = self.getConfigFromConsole()
         self.StartSignal.emit(config)
 
+    def emitcomputeMISignal(self):
+        pass
+
+    def emitInfoPlanSignal(self):
+        self.opt.type = 'InfoPlan'
+        self.showImg()
+
+    def emitMean_and_STDSignal(self):
+        self.opt.type = 'Mean_and_STD'
+        self.showImg()
+
+
     def onPreviewButtonClick(self, config):
         pretty_dict_str = pprint.pformat(config)
         self.resultLabel.setText(pretty_dict_str)    
@@ -125,10 +161,21 @@ class SignalEmit(QWidget):
         test = SaveActivations()
         test._update_opt(config)
         test.training_model()     
+
+    def showImg(self):
+        img_path = os.path.join(self.opt.plot_dir, self.opt.model_name, self.opt.timestamp, self.opt.type, "test.jpg")
+        if os.path.exists(img_path):
+            src = cv.imread(img_path)   
+            cv.namedWindow(self.opt.type, cv.WINDOW_AUTOSIZE)
+            cv.imshow(self.opt.type, src)
+            cv.waitKey(0)
+        else:
+            print("Can't find img!")
         
+
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    dispatch = SignalEmit()
+    dispatch = Console()
     sys.exit(app.exec_())
 
