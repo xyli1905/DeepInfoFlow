@@ -124,6 +124,8 @@ class SaveActivations:
                     loss.backward()
                     self._optimizer.step()
 
+                self._logger.log(self._model)# each time update weights LOG IT!
+
                 # monitor the running loss & running accuracy
                 eta = eta / (1. + bsize*eta)
                 running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
@@ -139,6 +141,8 @@ class SaveActivations:
                                                acc=running_acc*100., 
                                                num=corrects, 
                                                tnum=bsize))
+
+            self._logger.update(i_epoch)# to calculate std and mean
 
             if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                 print('{}'.format(11*'------'))        

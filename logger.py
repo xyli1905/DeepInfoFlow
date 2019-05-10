@@ -60,8 +60,8 @@ class Logger(object):
     def log(self, model):
         if len(self.weight_grad) == 0 and len(self.weight_value) == 0 and len(self.bias_grad) == 0 and len(self.bias_value) == 0:
             for i, (name, param) in enumerate(model.named_parameters()):
-                grad = param.grad.unsqueeze(0)
-                data = param.data.unsqueeze(0)
+                grad = param.grad.clone().unsqueeze(0)
+                data = param.data.clone().unsqueeze(0)
                 if name.endswith('weight'):
                     self.weight_grad.append(grad)
                     self.weight_value.append(data)

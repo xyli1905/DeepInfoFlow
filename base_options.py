@@ -13,7 +13,7 @@ class BaseOption:
         # Arguments For IBnet Begin
         self._parser.add_argument('--batch_size', type=int, default=256, help='number of data points in one batch')
         self._parser.add_argument('--experiment_name', type=str, default='IB_net_test_1', help='a unique name for experiment')
-        self._parser.add_argument('--lr', type=float, default=0.004, help='learning rate')
+        self._parser.add_argument('--lr', type=float, default=0.0004, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
         self._parser.add_argument('--max_epoch', type=int, default=1000, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
