@@ -28,7 +28,7 @@ class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
         # check device
-        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+        self._device = torch.device("cpu" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self._device)
 
 
@@ -133,7 +133,31 @@ class SaveActivations:
                 running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
                 running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
-                    sys.stdout.flush()
+                    output_format = "\repoch:{epoch} batch:{batch:2d} " +\
+                                    "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                                    "numacc:{num:.0f}/{tnum:.0f}"
+                    print(output_format.format(batch=i_batch+1,
+                                               epoch=i_epoch+1, 
+                                               loss=running_loss, 
+                                               acc=running_acc*100., 
+                                               num=corrects, 
+                                               tnum=bsize))
+            
+            self._model.eval()
+            for i_batch , (inputs, labels) in enumerate(self._test_set):
+                inputs = inputs.to(self._device)
+                labels = labels.to(self._device)
+                bsize = inputs.shape[0]
+                    #forward
+                outputs = self._model(inputs)
+                _, preds = torch.max(outputs, 1)
+                corrects = torch.sum(preds == labels.data).double()
+
+                # monitor the running loss & running accuracy
+                eta = eta / (1. + bsize*eta)
+                running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
+                running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
                                     "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
                                     "numacc:{num:.0f}/{tnum:.0f}"
