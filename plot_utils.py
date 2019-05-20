@@ -58,7 +58,7 @@ class PlotFigure:
         Lepoch = MI_X_T.keys()
         for epoch in Lepoch:
             ax.plot(MI_X_T[epoch], MI_Y_T[epoch], c=sm.to_rgba(epoch), alpha=0.1, zorder=1)
-            ax.scatter(MI_X_T[epoch], MI_Y_T[epoch], s=60, facecolor=sm.to_rgba(epoch), zorder=2)
+            ax.scatter(MI_X_T[epoch], MI_Y_T[epoch], s=40, facecolor=sm.to_rgba(epoch), zorder=2)
 
         ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize=22)
@@ -91,10 +91,10 @@ class PlotFigure:
         # set color and font
         csfont = {'fontname':'Times New Roman'}
 
-        Nlayers = mu.shape[0]
+        Nlayers = mu.shape[1]
         for L in range(Nlayers):
-            ax.plot(Lepoch, mu[L,:], ls='-')
-            ax.plot(Lepoch, sigma[L,:], ls='-.')
+            ax.plot(Lepoch, mu[:,L], ls='-')
+            ax.plot(Lepoch, sigma[:,L], ls='-.')
             
         # ax settings
         ax.set_xscale('log')

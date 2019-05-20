@@ -56,11 +56,12 @@ class SaveActivations:
         dataset = self._opt.dataset
         time = datetime.datetime.today().strftime('%m_%d_%H_%M')
         model = ''.join(list(map(lambda x:str(x) + '_', self._model.layer_dims)))
-        self._path_to_dir = save_root_dir + '/' + dataset + '_'+self._opt.experiment_name + '_' + '_Time_' + time + '_Model_' + model + '/'
+        folder_name = dataset + '_'+self._opt.experiment_name + '_Time_' + time + '_Model_' + model
+        self._path_to_dir = save_root_dir + '/' + folder_name + '/'
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
 
-        self._logger = Logger(opt=self._opt)
+        self._logger = Logger(opt=self._opt, folder_name)
         self._json = JsonParser()
         
     
@@ -154,6 +155,7 @@ class SaveActivations:
             self.save_model(i_epoch)
 
             # print(self._logger)
+        self._logger.plot_mean_std()
         print ('-------------------------training end--------------------------')
         
     def save_model(self, epoch):

@@ -40,11 +40,6 @@ class CustomDataset(Dataset):
 
 
 def get_mnist():
-    # Returns two namedtuples, with MNIST training and testing data
-    #   trn.X is training data
-    #   trn.y is trainiing class, with numbers from 0 to 9
-    #   trn.Y is training class, but coded as a 10-dim vector with one entry set to 1
-    # similarly for tst
     """ nb_classes = 10
     (X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
     X_train = np.reshape(X_train, [X_train.shape[0], -1]).astype('float32') / 255.
@@ -65,35 +60,6 @@ def get_mnist():
 
  
     return training_set, testing_set
-
-# def get_IB_data(ID):
-#     # Returns two namedtuples, with IB training and testing data
-#     #   trn.X is training data
-#     #   trn.y is trainiing class, with numbers from 0 to 9
-#     #   trn.Y is training class, but coded as a 10-dim vector with one entry set to 1
-#     # similarly for tst
-#     nb_classes = 2
-#     data_file = Path('datasets/IB_data_'+str(ID)+'.npz')
-#     if data_file.is_file():
-#         data = np.load('datasets/IB_data_'+str(ID)+'.npz')
-#     else:
-#         create_IB_data(ID)
-#         data = np.load('datasets/IB_data_'+str(ID)+'.npz')
-        
-#     (X_train, y_train), (X_test, y_test) = (data['X_train'], data['y_train']), (data['X_test'], data['y_test'])
-#     print(X_test)
-#     print(y_test)
-
-    
-
-#     # Y_train = keras.utils.np_utils.to_categorical(y_train, nb_classes).astype('float32')
-#     # Y_test  = keras.utils.np_utils.to_categorical(y_test, nb_classes).astype('float32')
-
-#     # Dataset = namedtuple('Dataset',['X','Y','y','nb_classes'])
-#     # trn = Dataset(X_train, Y_train, y_train, nb_classes)
-#     # tst = Dataset(X_test , Y_test, y_test, nb_classes)
-#     # del X_train, X_test, Y_train, Y_test, y_train, y_test
-#     return trn, tst
 
 def create_IB_data(idx):
     data_sets_org = load_data()

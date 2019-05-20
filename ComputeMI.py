@@ -7,13 +7,15 @@ from model import Model
 from json_parser import JsonParser
 import time
 from plot_utils import PlotFigure
+import sys
 
 
 class ComputeMI:
     def __init__(self):
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.path =os.path.join('./results', 'IBNet_IB_net_test_1__Time_05_09_21_31_Model_12_12_10_7_5_4_3_2_2_')# info plane dir
+        self.model_name = 'IBNet_IB_net_test_3__Time_05_19_17_08_Model_12_12_10_7_5_4_3_2_2_'
+        self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
@@ -21,15 +23,24 @@ class ComputeMI:
         # dataset
         if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
-            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
-            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
+
+            if not self._opt.full_mi:
+                # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
+                self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
+            else:
+                dataset = torch.utils.data.ConcatDataset([train_data, test_data])
+                self._test_set = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
             print("MNIST experiment")
 
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-            self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
-            self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
+            # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
+            if not self._opt.full_mi:
+                self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
+            else:
+                dataset = torch.utils.data.ConcatDataset([train_data, test_data])
+                self._test_set = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
@@ -69,7 +80,10 @@ class ComputeMI:
 
         nats2bits = 1.0/np.log(2)
 
+        progress = 0
         for epoch_file in epoch_files:
+            progress += 1
+            print("\rprogress : " + str(float(progress / len(epoch_files)) * 100.0) + "%",end = "", flush = True)
             if not epoch_file.endswith('.pth'):
                 continue
 
@@ -134,7 +148,7 @@ class ComputeMI:
                 raise RuntimeError('epoch is duplicated')
 
         end = time.time()
-        plotter = PlotFigure(self._opt)
+        plotter = PlotFigure(self._opt, self.model_name)
         plotter.plot_MI_plane(IX, IY)
         print(end - start)
 
