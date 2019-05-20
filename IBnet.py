@@ -28,7 +28,7 @@ class SaveActivations:
     def __init__(self):
         self._opt = BaseOption().parse()
         # check device
-        self._device = torch.device("cpu" if torch.cuda.is_available() else "cpu") # device setup
+        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         print("device: ",self._device)
 
 
