@@ -15,24 +15,31 @@ see for reference: https://github.com/matplotlib/matplotlib/issues/13414
 '''
 
 class PlotFigure:
-    def __init__(self, opt):
+    def __init__(self, opt, model_name):
         self.name = 'Plot_Utils'
         self._opt = opt
 
-        # check root saving directory
+        # NOTE we save figures in two places: the plot_root and results/model_path
+        # check existence of plot_root
+        self.plot_dir = opt.plot_dir
         if not os.path.exists(opt.plot_dir):
             os.mkdir(opt.plot_dir)
 
-        # set saving directory for present model
-        self.experiment_dir = os.path.join(opt.plot_dir, opt.experiment_name)
-        if not os.path.exists(self.experiment_dir):
-            os.mkdir(self.experiment_dir)
+        self.model_name = model_name
+        self.model_path = os.path.join('./results', model_name)
+        if not os.path.exists(self.model_path):
+            os.mkdir(self.model_path)
 
-        # set timestamp to distinguish same model at differet training
-        timestamp = datetime.datetime.today().strftime('%m_%d_%H_%M')
-        self.timestamp_dir = os.path.join(self.experiment_dir, timestamp)
-        if not os.path.exists(self.timestamp_dir):
-            os.mkdir(self.timestamp_dir)
+        # # set saving directory for present model
+        # self.experiment_dir = os.path.join(opt.plot_dir, opt.experiment_name)
+        # if not os.path.exists(self.experiment_dir):
+        #     os.mkdir(self.experiment_dir)
+
+        # # set timestamp to distinguish same model at differet training
+        # timestamp = datetime.datetime.today().strftime('%m_%d_%H_%M')
+        # self.timestamp_dir = os.path.join(self.experiment_dir, timestamp)
+        # if not os.path.exists(self.timestamp_dir):
+        #     os.mkdir(self.timestamp_dir)
 
     def plot_MI_plane(self, MI_X_T, MI_Y_T):
         '''
@@ -67,7 +74,7 @@ class PlotFigure:
         fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
 
         # set dir for mean_std; saving figure
-        self._save_fig(fig, 'InfoPlan', 'test')
+        self._save_fig(fig, 'InfoPlan')
 
 
     def plot_mean_std(self, Lepoch, mu, sigma):
@@ -98,23 +105,28 @@ class PlotFigure:
         ax.tick_params(labelsize=13)
 
         # set dir for mean_std; saving figure
-        self._save_fig(fig, 'Mean_and_STD', 'test')
+        self._save_fig(fig, 'Mean_and_STD')
 
 
     def plot_other(self):
         pass
 
 
-    def _save_fig(self, fig, dir_name, fig_name):
-        fig_dir = os.path.join(self.timestamp_dir, dir_name)
-        if not os.path.exists(fig_dir):
-            os.mkdir(fig_dir)
-
-        fig_name_eps = os.path.join(fig_dir, "{}.eps".format(fig_name))
+    def _save_fig(self, fig, fig_name):
+        # save in model_path
+        fig_name_eps = os.path.join(self.model_path, "{}.eps".format(fig_name))
         fig.savefig(fig_name_eps, format='eps')
 
-        fig_name_jpg = os.path.join(fig_dir, "{}.jpg".format(fig_name))
+        fig_name_jpg = os.path.join(self.model_path, "{}.jpg".format(fig_name))
         fig.savefig(fig_name_jpg, format='jpeg')
+
+        # save in plot_root
+        fig_name_eps = os.path.join(self.plot_dir, "{}_{}.eps".format(fig_name, self.model_name))
+        fig.savefig(fig_name_eps, format='eps')
+
+        fig_name_jpg = os.path.join(self.plot_dir, "{}_{}.jpg".format(fig_name, self.model_name))
+        fig.savefig(fig_name_jpg, format='jpeg')
+
 
 
 
@@ -140,11 +152,11 @@ def main():
     opt.experiment_name = 'testdrawing'
     # opt.timestamp = '19050310'
 
-    pltfig = PlotFigure(opt)
+    # pltfig = PlotFigure(opt)
 
     # pltfig.plot_MI_plane(x1,y2,x2,y2)
 
-    pltfig.plot_mean_std(Lepoch, mu, sigma)
+    # pltfig.plot_mean_std(Lepoch, mu, sigma)
     
 
 
