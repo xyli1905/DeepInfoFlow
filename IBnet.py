@@ -60,7 +60,7 @@ class SaveActivations:
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
 
-        self._logger = Logger(opt=self._opt)
+        self._logger = Logger(opt=self._opt, self._path_to_dir)
         self._json = JsonParser()
         
     

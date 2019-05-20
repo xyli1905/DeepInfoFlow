@@ -4,8 +4,9 @@ from plot_utils import PlotFigure
 import numpy as np 
 
 class Logger(object):
-    def __init__(self, opt):
+    def __init__(self, opt, model_path):
         self._opt = opt
+        self.model_path = model_path
         self.log_seperator = self._opt.log_seperator
         self.log_frequency = self._opt.log_frequency
         self.data = self.createDataDict()
@@ -13,7 +14,7 @@ class Logger(object):
         self.weight_value = [] # for l2n
         self.bias_grad    = [] # for mean, std
         self.bias_value   = [] # for l2n
-        self.plotter = PlotFigure(self._opt)
+        self.plotter = PlotFigure(self._opt, self.model_path)
         self.recorded_epochs = []
         
     def createDataDict(self):

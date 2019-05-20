@@ -14,7 +14,8 @@ class ComputeMI:
     def __init__(self):
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.path =os.path.join('./results', 'IBNet_IB_net_test_3__Time_05_19_16_29_Model_12_12_10_7_5_4_3_2_2_')# info plane dir
+        model_path = 'IBNet_IB_net_test_3__Time_05_19_17_08_Model_12_12_10_7_5_4_3_2_2_'
+        self.path =os.path.join('./results', model_path)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
@@ -147,7 +148,7 @@ class ComputeMI:
                 raise RuntimeError('epoch is duplicated')
 
         end = time.time()
-        plotter = PlotFigure(self._opt)
+        plotter = PlotFigure(self._opt, self.path)
         plotter.plot_MI_plane(IX, IY)
         print(end - start)
 
