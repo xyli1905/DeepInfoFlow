@@ -26,7 +26,8 @@ class PlotFigure:
             os.mkdir(opt.plot_dir)
 
         self.model_name = model_name
-        self.model_path = os.path.join('./results', model_name)
+        tmp_dir = os.path.join('./results', model_name)
+        self.model_path = os.path.join(tmp_dir, 'plots')
         if not os.path.exists(self.model_path):
             os.mkdir(self.model_path)
 
