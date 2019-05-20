@@ -58,10 +58,11 @@ class SaveActivations:
         model = ''.join(list(map(lambda x:str(x) + '_', self._model.layer_dims)))
         folder_name = dataset + '_'+self._opt.experiment_name + '_Time_' + time + '_Model_' + model
         self._path_to_dir = save_root_dir + '/' + folder_name + '/'
+        print(self._path_to_dir)
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
 
-        self._logger = Logger(opt=self._opt, folder_name)
+        self._logger = Logger(opt=self._opt, plot_name = folder_name)
         self._json = JsonParser()
         
     
