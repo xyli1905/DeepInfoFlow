@@ -2,7 +2,7 @@ import torch
 from model import Model
 
 test = Model(dims = [12, 12, 10, 7, 5, 4, 3, 2, 2], train=True)
-ckpt = torch.load('model_epoch_8000.pth')
+ckpt = torch.load('model_epoch_1197.pth')
 print(ckpt['model_state_dict'])
 
 

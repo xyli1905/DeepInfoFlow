@@ -108,7 +108,9 @@ class SaveActivations:
             # train batch
             if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                 print('\n{}'.format(11*'------'))
-
+            
+            running_acc = 0
+            running_acc = 0
             for i_batch , (inputs, labels) in enumerate(self._train_set):
                 inputs = inputs.to(self._device)
                 labels = labels.to(self._device)
@@ -116,22 +118,24 @@ class SaveActivations:
                 # set to learnable
                 with torch.set_grad_enabled(True):
                     #forward
+                    self._optimizer.zero_grad()
                     outputs = self._model(inputs)
                     loss = self._criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
                     corrects = torch.sum(preds == labels.data).double()
 
                     # backprop
-                    self._optimizer.zero_grad()
                     loss.backward()
                     self._optimizer.step()
 
                 self._logger.log(self._model)# each time update weights LOG IT!
 
                 # monitor the running loss & running accuracy
-                eta = eta / (1. + bsize*eta)
-                running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
-                running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                # eta = eta / (1. + bsize*eta)
+                # running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
+                # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                running_acc = float(corrects.detach() / bsize)
+                running_loss = float(loss.detach())
                 if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
                                     "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
