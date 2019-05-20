@@ -5,52 +5,71 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import cv2 as cv
 
-from plot_utils import *
 
-class QtPlot(QWidget):
+import sys
 
-    def __init__(self, opt):
-        super().__init__()
-        self.title = opt.type
-        self.left = [100, 1000]
-        self.top = 100
-        self.width = 640
-        self.height = 480
-        self.opt = opt
-        self.initUI()
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
-    
-    def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left[0] if self.opt.type == 'Mean_and_STD' else  self.left[1], \
-                        self.top, self.width, self.height)
-    
-        label = QLabel(self)
-        img = self.load_img()
-        label.setPixmap(img)
-        self.resize(img.width(),img.height())
-        self.show()
-        print(2222222222)
+class ShowImgHelper(QWidget):
+    def __init__(self, *args, **kwargs):
+        QWidget.__init__(self, *args, **kwargs)
+        hlay = QHBoxLayout(self)
+        self.treeview = QTreeView()
+        self.listview = QListView()
+        hlay.addWidget(self.treeview)
+        hlay.addWidget(self.listview)
 
-    def load_img(self):
-        img_path = os.path.join(self.opt.plot_dir, self.opt.model_name, self.opt.timestamp, self.opt.type, "test.jpg")
-        img = QPixmap(img_path)
-        return img
+        path = ".\\results"
+        
+        self.dirModel = QFileSystemModel()
+        self.dirModel.setRootPath(QDir.rootPath())
+        self.dirModel.setFilter(QDir.NoDotAndDotDot | QDir.AllDirs)
 
+        self.fileModel = QFileSystemModel()
+        self.fileModel.setFilter(QDir.NoDotAndDotDot |  QDir.Files)
+
+        self.treeview.setModel(self.dirModel)
+        self.listview.setModel(self.fileModel)
+
+        self.treeview.setRootIndex(self.dirModel.index(path))
+        self.listview.setRootIndex(self.fileModel.index(path))
+
+        self.treeview.clicked.connect(self.onClicked)
+
+    def onMainWindowClicked(self):
+        if not self.isVisible():
+            self.show()
+
+    def onShowPlanSignal(self):
+        name = 'InfoPlan'
+        img_path = self.path + "//InfoPlan.jpg"
+        if os.path.exists(img_path):
+            self.showImg(name, img_path)
+
+    def onShowMean_and_STDSignal(self):
+        name = 'Mean_and_STD'
+        img_path = self.path + "//Mean_and_STD.jpg"
+        if os.path.exists(img_path):
+            self.showImg(name, img_path)
+
+    def onClicked(self, index):
+        self.path = self.dirModel.fileInfo(index).absoluteFilePath()
+        self.listview.setRootIndex(self.fileModel.setRootPath(self.path))
+
+    def showImg(self, name, img_path):
+        if os.path.exists(img_path):
+            src = cv.imread(img_path)   
+            cv.namedWindow(name, cv.WINDOW_AUTOSIZE)
+            cv.imshow(name, src)
+            cv.waitKey(0)
+        else:
+            print("Can't find img!")
 
 if __name__ == '__main__':
-
-    C = type('type_C', (object,), {})
-    opt = C()
-
-    opt.plot_dir = './plots'
-    opt.model_name = 'testdrawing'
-    opt.timestamp = '19050310'
-    opt.type = 'InfoPlan'
-
     app = QApplication(sys.argv)
-    ex = QtPlot(opt)
+    w = ShowImgHelper()
+    w.show()
     sys.exit(app.exec_())
-    
-    

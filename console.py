@@ -5,6 +5,7 @@ import os
 import sys
 import pprint
 from IBnet import SaveActivations
+from qt_plot import ShowImgHelper
 import cv2 as cv
 
 class Console(QWidget):
@@ -14,16 +15,8 @@ class Console(QWidget):
         super().__init__()        
         self.initUI()
 
-        # for test
-        C = type('type_C', (object,), {})
-        self.opt = C()
-        self.opt.plot_dir = './plots'
-        self.opt.model_name = 'testdrawing'
-        self.opt.timestamp = '19050310'
-        
-
     def initUI(self):           
-
+        self.img_folder = ShowImgHelper()
         self.creatControls("parameter setting")
         self.creatResult("parameter preview")
 
@@ -38,22 +31,24 @@ class Console(QWidget):
         self.startButton.clicked.connect(self.emitStartSignal)
         self.previewButton.clicked.connect(self.emitPreviewSignal)
         self.computeMIButton.clicked.connect(self.emitcomputeMISignal)
-        self.InfoPlanButton.clicked.connect(self.emitInfoPlanSignal)
-        self.Mean_and_STDButton.clicked.connect(self.emitMean_and_STDSignal)
+        self.InfoPlanButton.clicked.connect(self.img_folder.onShowPlanSignal)
+        self.Mean_and_STDButton.clicked.connect(self.img_folder.onShowMean_and_STDSignal)
+        self.imageButton.clicked.connect(self.img_folder.onMainWindowClicked)
 
 
         self.setGeometry(300, 300, 360, 250)
         self.setWindowTitle('DeepInfoFlow Console')
         self.show()
 
-    def configControls(self):
+    def configButtons(self):
         self.startButton = QPushButton("start train")
         self.previewButton  = QPushButton("preview")
-
         self.computeMIButton  = QPushButton("compute MI")
         self.InfoPlanButton = QPushButton("InfoPlan")
         self.Mean_and_STDButton  = QPushButton("Mean_and_STD")
+        self.imageButton = QPushButton("image folders")
 
+    def configLineEdit(self):
         self.learningRateLabel = QLabel("learning rate: ")
         self.learningRateText = QLineEdit(self)
         self.learningRateText.setText("0.0001")
@@ -62,6 +57,7 @@ class Console(QWidget):
         self.maxEpochText = QLineEdit(self)
         self.maxEpochText.setText("2")
 
+    def configCombo(self):
         self.datasetLabel = QLabel("dataset: ")
         self.datasetCombo = QComboBox(self)
         self.datasetCombo.addItem("IBNet")
@@ -72,12 +68,20 @@ class Console(QWidget):
         self.activationCombo.addItem("tanh")
         self.activationCombo.addItem("relu")
 
+    def configCheckBox(self):
         self.isLogMean = QCheckBox("mean")
         self.isLogStd = QCheckBox("std")
         self.isLogL2n = QCheckBox("l2n")
         self.isLogMean.setCheckState(2)
         self.isLogStd.setCheckState(2)
         self.isLogL2n.setCheckState(2)
+
+    def configControlers(self):
+        self.configButtons()
+        self.configLineEdit()
+        self.configCombo()
+        self.configCheckBox()
+
 
     def layoutControls(self):
         controlsLayout = QGridLayout()
@@ -103,13 +107,14 @@ class Console(QWidget):
         controlsLayout.addWidget(self.computeMIButton, 3, 0)
         controlsLayout.addWidget(self.InfoPlanButton, 3, 1)
         controlsLayout.addWidget(self.Mean_and_STDButton, 3, 2)
+        controlsLayout.addWidget(self.imageButton, 3, 3)
         
 
         return controlsLayout
 
     def creatControls(self, title):
         self.controlsGroup = QGroupBox(title)
-        self.configControls()
+        self.configControlers()
         controlsLayout = self.layoutControls()
         self.controlsGroup.setLayout(controlsLayout)
 
@@ -144,14 +149,7 @@ class Console(QWidget):
     def emitcomputeMISignal(self):
         pass
 
-    def emitInfoPlanSignal(self):
-        self.opt.type = 'InfoPlan'
-        self.showImg()
-
-    def emitMean_and_STDSignal(self):
-        self.opt.type = 'Mean_and_STD'
-        self.showImg()
-
+    
 
     def onPreviewButtonClick(self, config):
         pretty_dict_str = pprint.pformat(config)
@@ -171,7 +169,9 @@ class Console(QWidget):
             cv.waitKey(0)
         else:
             print("Can't find img!")
-        
+    
+    def showImgPath(self):
+        pass
 
 if __name__ == '__main__':
 
