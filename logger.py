@@ -1,5 +1,7 @@
 import torch
 import pprint
+from plot_utils import PlotFigure
+import numpy as np 
 
 class Logger(object):
     def __init__(self, opt):
@@ -11,6 +13,8 @@ class Logger(object):
         self.weight_value = [] # for l2n
         self.bias_grad    = [] # for mean, std
         self.bias_value   = [] # for l2n
+        self.plotter = PlotFigure(self._opt)
+        self.recorded_epochs = []
         
     def createDataDict(self):
         
@@ -37,6 +41,7 @@ class Logger(object):
 
     def update(self, epoch):
         if self.needLog(epoch):
+            self.recorded_epochs.append(epoch)
             epoch_key = "epoch" + str(epoch)
             for i in range(len(self.weight_grad)):
                 layer_key = "layer" + str(i)
@@ -105,6 +110,24 @@ class Logger(object):
         for idx, val in enumerate(self.log_seperator):
             if epoch < val:
                 return epoch % self.log_frequency[idx] == 0
+
+    def plot_mean_std(self):
+        epoch_std = []
+        epoch_mean = []
+        for epoch in self.recorded_epochs:
+            epoch_key = 'epoch' + str(epoch)
+            layer_std = []
+            layer_mean = []
+            for layer in range(len(self._opt.layer_dims) - 1):
+                layer_key = 'layer' + str(layer)
+                layer_mean.append(self.data["weight"]["mean"][epoch_key][layer_key] / self.data["weight"]["l2n"][epoch_key][layer_key])
+                layer_std.append(self.data["weight"]["std"][epoch_key][layer_key] / self.data["weight"]["l2n"][epoch_key][layer_key])
+            epoch_mean.append(layer_mean)
+            epoch_std.append(layer_std)
+        epoch_mean = np.array(epoch_mean)
+        epoch_std = np.array(epoch_std)
+
+        self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
 
     def __str__(self):
         pprint.pprint(self.data)
