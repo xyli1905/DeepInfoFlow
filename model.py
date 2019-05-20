@@ -4,13 +4,13 @@ import torch.optim as optim
 import copy
 
 class Model(nn.Module):
-    def __init__(self, dims, train = True):
+    def __init__(self, activation , dims, train = True):
         super(Model,self).__init__()
         self.layer_dims = dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
         self._train = train
-        self.construct_model_by_name('relu')
+        self.construct_model_by_name(activation)
 
 
     def construct_model_by_name(self, name):

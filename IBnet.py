@@ -78,7 +78,7 @@ class SaveActivations:
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model(dims = dims, train=True)
+        self._model = Model(activation = self._opt.activation, dims = dims, train=True)
         self._model.apply(weights_init)
         # optimizer 
         self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
@@ -158,16 +158,16 @@ class SaveActivations:
                 corrects = torch.sum(preds == labels.data).double()
 
                 # monitor the running loss & running accuracy
-                eta = eta / (1. + bsize*eta)
-                running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
-                running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                # eta = eta / (1. + bsize*eta)
+                # running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
+                # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
+                running_acc = float(corrects.detach() / bsize)
                 if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
-                                    "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                                    "Acc:{acc:.5f}% " +\
                                     "numacc:{num:.0f}/{tnum:.0f}"
                     print(output_format.format(batch=i_batch+1,
-                                               epoch=i_epoch+1, 
-                                               loss=running_loss, 
+                                               epoch=i_epoch+1,
                                                acc=running_acc*100., 
                                                num=corrects, 
                                                tnum=bsize))
