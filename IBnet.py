@@ -64,8 +64,7 @@ class SaveActivations:
 
         self._logger = Logger(opt=self._opt, plot_name = folder_name)
         self._json = JsonParser()
-        
-    
+
     def _update_opt(self, other):
         for key, val in other.items():
             setattr(self._opt, key, val)
@@ -80,7 +79,7 @@ class SaveActivations:
         # model construction
         self._model = Model(activation = self._opt.activation, dims = dims, train=True)
         self._model.apply(weights_init)
-        # optimizer 
+        # optimizer
         self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
         # loss
         self._criterion = nn.CrossEntropyLoss() # loss
@@ -141,10 +140,10 @@ class SaveActivations:
                                     "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
                                     "numacc:{num:.0f}/{tnum:.0f}"
                     print(output_format.format(batch=i_batch+1,
-                                               epoch=i_epoch+1, 
-                                               loss=running_loss, 
-                                               acc=running_acc*100., 
-                                               num=corrects, 
+                                               epoch=i_epoch+1,
+                                               loss=running_loss,
+                                               acc=running_acc*100.,
+                                               num=corrects,
                                                tnum=bsize))
             
             self._model.eval()
@@ -168,14 +167,14 @@ class SaveActivations:
                                     "numacc:{num:.0f}/{tnum:.0f}"
                     print(output_format.format(batch=i_batch+1,
                                                epoch=i_epoch+1,
-                                               acc=running_acc*100., 
-                                               num=corrects, 
+                                               acc=running_acc*100.,
+                                               num=corrects,
                                                tnum=bsize))
 
             self._logger.update(i_epoch)# to calculate std and mean
 
             if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
-                print('{}'.format(11*'------'))        
+                print('{}'.format(11*'------'))
                 t_end = time.time()
                 print('time cost for this output period: {:.3f}(s)'.format(t_end - t_begin))
                 t_begin = time.time()

@@ -16,9 +16,7 @@ class Logger(object):
         self.bias_value   = [] # for l2n
         self.plotter = PlotFigure(self._opt, self.plot_name)
         self.recorded_epochs = []
-        
     def createDataDict(self):
-        
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
         source_keys  = ["weight", "bias"]
@@ -55,7 +53,7 @@ class Logger(object):
                 if self._opt.l2n:
                     self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=True)
                     self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=False)
-        self.clear()
+            self.clear()
 
     def clear(self):
         self.weight_grad = []
@@ -65,9 +63,9 @@ class Logger(object):
 
     def log(self, model):
         if len(self.weight_grad) == 0 and len(self.weight_value) == 0 and len(self.bias_grad) == 0 and len(self.bias_value) == 0:
-            for i, (name, param) in enumerate(model.named_parameters()):
-                grad = param.grad.clone().unsqueeze(0)
-                data = param.data.clone().unsqueeze(0)
+            for name, param in model.named_parameters():
+                grad = param.grad.clone().detach().unsqueeze(0)
+                data = param.data.clone().detach().unsqueeze(0)
                 if name.endswith('weight'):
                     self.weight_grad.append(grad)
                     self.weight_value.append(data)
@@ -77,8 +75,8 @@ class Logger(object):
         else:
             index = 0
             for name, param in model.named_parameters():
-                grad = param.grad.unsqueeze(0)
-                data = param.data.unsqueeze(0)
+                grad = param.grad.clone().detach().unsqueeze(0)
+                data = param.data.clone().detach().unsqueeze(0)
                 if name.endswith('weight'):
                     self.weight_grad[index] = torch.cat((self.weight_grad[index], grad), dim = 0)
                     self.weight_value[index] = torch.cat((self.weight_value[index], data), dim = 0)
@@ -86,9 +84,7 @@ class Logger(object):
                     self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
-            
     def dataParser(self, layer, _type="mean", isWeight=True):
-        
         if isWeight:
             grad, value = self.weight_grad[layer], self.weight_value[layer]
         else:
@@ -121,8 +117,8 @@ class Logger(object):
             layer_mean = []
             for layer in range(len(self._opt.layer_dims) - 1):
                 layer_key = 'layer' + str(layer)
-                layer_mean.append(self.data["weight"]["mean"][epoch_key][layer_key] / self.data["weight"]["l2n"][epoch_key][layer_key])
-                layer_std.append(self.data["weight"]["std"][epoch_key][layer_key] / self.data["weight"]["l2n"][epoch_key][layer_key])
+                layer_mean.append(self.data["weight"]["mean"][epoch_key][layer_key])
+                layer_std.append(self.data["weight"]["std"][epoch_key][layer_key])
             epoch_mean.append(layer_mean)
             epoch_std.append(layer_std)
         epoch_mean = np.array(epoch_mean)
