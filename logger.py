@@ -53,7 +53,7 @@ class Logger(object):
                 if self._opt.l2n:
                     self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=True)
                     self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=False)
-        self.clear()
+            self.clear()
 
     def clear(self):
         self.weight_grad = []

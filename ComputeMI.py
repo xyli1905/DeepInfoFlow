@@ -13,7 +13,7 @@ import sys
 class ComputeMI:
     def __init__(self):
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_IB_net_test_3_Time_05_20_17_00_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_IB_net_test_3_Time_05_20_17_35_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
