@@ -5,7 +5,8 @@ import os
 import sys
 import pprint
 from IBnet import SaveActivations
-from qt_plot import ShowImgHelper
+from qt_plot import ShowImgHelper, ShowJsonHelper, ProgressBarHelper
+
 import cv2 as cv
 
 class Console(QWidget):
@@ -16,7 +17,10 @@ class Console(QWidget):
         self.initUI()
 
     def initUI(self):           
-        self.img_folder = ShowImgHelper()
+        self.img_folder   = ShowImgHelper()
+        self.json_folder  = ShowJsonHelper()
+        self.progress_bar = ProgressBarHelper(self.json_folder)
+
         self.creatControls("parameter setting")
         self.creatResult("parameter preview")
 
@@ -30,10 +34,14 @@ class Console(QWidget):
 
         self.startButton.clicked.connect(self.emitStartSignal)
         self.previewButton.clicked.connect(self.emitPreviewSignal)
-        self.computeMIButton.clicked.connect(self.emitcomputeMISignal)
+
         self.InfoPlanButton.clicked.connect(self.img_folder.onShowPlanSignal)
         self.Mean_and_STDButton.clicked.connect(self.img_folder.onShowMean_and_STDSignal)
         self.imageButton.clicked.connect(self.img_folder.onMainWindowClicked)
+
+        self.computeMIButton.clicked.connect(self.progress_bar.onMainWindowClicked)
+        self.computeMIButton.clicked.connect(self.json_folder.onComputeMISignal)
+        self.jsonButton.clicked.connect(self.json_folder.onMainWindowClicked)
 
 
         self.setGeometry(300, 300, 360, 250)
@@ -47,6 +55,7 @@ class Console(QWidget):
         self.InfoPlanButton = QPushButton("InfoPlan")
         self.Mean_and_STDButton  = QPushButton("Mean_and_STD")
         self.imageButton = QPushButton("image folders")
+        self.jsonButton = QPushButton("json folders")
 
     def configLineEdit(self):
         self.learningRateLabel = QLabel("learning rate: ")
@@ -104,12 +113,13 @@ class Console(QWidget):
         controlsLayout.addWidget(self.isLogStd, 2, 1)
         controlsLayout.addWidget(self.isLogL2n, 2, 2)
 
-        controlsLayout.addWidget(self.computeMIButton, 3, 0)
-        controlsLayout.addWidget(self.InfoPlanButton, 3, 1)
-        controlsLayout.addWidget(self.Mean_and_STDButton, 3, 2)
-        controlsLayout.addWidget(self.imageButton, 3, 3)
-        
+        controlsLayout.addWidget(self.jsonButton, 3, 0)
+        controlsLayout.addWidget(self.computeMIButton, 3, 1)
 
+        controlsLayout.addWidget(self.imageButton, 4, 0)
+        controlsLayout.addWidget(self.InfoPlanButton, 4, 1)
+        controlsLayout.addWidget(self.Mean_and_STDButton, 4, 2)
+        
         return controlsLayout
 
     def creatControls(self, title):
@@ -146,11 +156,6 @@ class Console(QWidget):
         config = self.getConfigFromConsole()
         self.StartSignal.emit(config)
 
-    def emitcomputeMISignal(self):
-        pass
-
-    
-
     def onPreviewButtonClick(self, config):
         pretty_dict_str = pprint.pformat(config)
         self.resultLabel.setText(pretty_dict_str)    
@@ -170,8 +175,6 @@ class Console(QWidget):
         else:
             print("Can't find img!")
     
-    def showImgPath(self):
-        pass
 
 if __name__ == '__main__':
 
