@@ -88,22 +88,31 @@ class PlotFigure:
 
         fig = plt.figure(figsize=(9,7))
         ax = fig.add_subplot(1,1,1)
+        legend_mean = []
+        legend_std  = []
+        layer_mark = ['layer'+str(i+1) for i in range(mu.shape[1])]
+        colors = ['b', 'r', 'g', 'c', 'm', 'y', 'orange', 'darkgreen']
 
         # set color and font
         csfont = {'fontname':'Times New Roman'}
 
         Nlayers = mu.shape[1]
         for L in range(Nlayers):
-            ax.plot(Lepoch, mu[:,L], ls='-')
-            ax.plot(Lepoch, sigma[:,L], ls='-.')
-            
+            legend_mean += ax.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
+            legend_std  += ax.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
+    
         # ax settings
         ax.set_xscale('log')
+        # ax.set_yscale('log')
         ax.set_xlabel('number of epochs', fontsize=22, **csfont)
         ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
-        # ax.set_facecolor('#edf0f8')
-        # ax.grid(color='w', linestyle='-.', linewidth=1)
+        ax.set_facecolor('#edf0f8')
+        ax.grid(color='w', linestyle='-.', linewidth=1)
         ax.tick_params(labelsize=13)
+        leg_mean = ax.legend(legend_mean, layer_mark,  bbox_to_anchor=[0.15, 1], title='Mean')
+        leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[0.3, 1], title='STD')
+        ax.add_artist(leg_mean)
+        ax.add_artist(leg_std)
 
         # set dir for mean_std; saving figure
         self._save_fig(fig, 'Mean_and_STD')
