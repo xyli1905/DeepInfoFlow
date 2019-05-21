@@ -15,20 +15,20 @@ class BaseOption:
         self._parser.add_argument('--experiment_name', type=str, default='IB_net_test_3', help='a unique name for experiment')
         self._parser.add_argument('--lr', type=float, default=0.0004, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=100, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=1000, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
         self._parser.add_argument('--layer_dims', type=list, default=[12, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
 
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
-        self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
+        self._parser.add_argument('--activation', type=str, default='relu', help='activation method')
         self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
 
         self._parser.add_argument('--std', type=self.boolean_string, default=True, help='whether to save nets gradient standard deviation')
         self._parser.add_argument('--mean', type=self.boolean_string, default=True, help='whether to save nets gradient mean')
         self._parser.add_argument('--l2n', type=self.boolean_string, default=True, help='whether to save nets weight L2 normalization')
-        
+
         self._parser.add_argument('--log_seperator', type=list, default=[20, 100, 2000, 10000], help='number of epochs to change log frequency')
         self._parser.add_argument('--log_frequency', type=list, default=[1, 5, 20, 100], help='log frequency')
 
