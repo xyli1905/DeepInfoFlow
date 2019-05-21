@@ -81,7 +81,7 @@ class SaveActivations:
         self._model.apply(weights_init)
         # optimizer
         # self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
-        self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=0.9)
+        self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
         # loss
         self._criterion = nn.CrossEntropyLoss() # loss
 

@@ -104,8 +104,9 @@ class Logger(object):
             return torch.norm(mean).item()
         elif _type == "std":
             grad = torch.reshape(grad, (grad.shape[0], -1))
-            std = torch.std(grad, dim = 0)
-            return torch.norm(std).item()
+            # std = torch.std(grad, dim = 0)
+            # return torch.norm(std).item()
+            return torch.std(grad).item()
         elif _type == "l2n":
             return torch.norm(value).item()
 
