@@ -102,6 +102,7 @@ class PlotFigure:
             legend_std  += ax.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
     
         # ax settings
+        ax.set_title(self._opt.activation)
         fig.subplots_adjust(right = 0.86)
         ax.set_xscale('log')
         ax.set_yscale('log')
