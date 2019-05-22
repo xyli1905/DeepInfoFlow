@@ -103,7 +103,7 @@ class Logger(object):
             mean = torch.mean(grad, dim = 0)
             return torch.norm(mean).item()
         elif _type == "std":
-            grad = torch.reshape(grad, (grad.shape[0], -1))
+            # grad = torch.reshape(grad, (grad.shape[0], -1))
             # std = torch.std(grad, dim = 0)
             # return torch.norm(std).item()
             return torch.std(grad).item()
@@ -112,7 +112,7 @@ class Logger(object):
 
     def needLog(self, epoch):
         # Only log activity for some epochs.  Mainly this is to make things run faster.
-        assert(len(self.log_seperator) == len(self.log_frequency), "sha bi")
+        assert len(self.log_seperator) == len(self.log_frequency), "sha bi"
         for idx, val in enumerate(self.log_seperator):
             if epoch < val:
                 return epoch % self.log_frequency[idx] == 0
