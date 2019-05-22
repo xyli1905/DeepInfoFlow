@@ -22,7 +22,7 @@ class Logger(object):
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
-        source_keys  = ["gradient" ,"weight", "bias", "bias_grad"]
+        source_keys  = ["weight_value" ,"weight_grad", "bias", "bias_grad"]
         type_keys    = ["mean", "std", "l2n"]
         epoch_keys   = list(map(lambda x: "epoch" + str(x), [i for i in range(epoch_num)]))
         layer_keys   = list(map(lambda x: "layer" + str(x), [i for i in range(layer_size)]))
@@ -48,14 +48,20 @@ class Logger(object):
             for i in range(len(self.weight_grad)):
                 layer_key = "layer" + str(i)
                 if self._opt.mean:
-                    self.data["weight"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True)
-                    self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False)
+                    self.data["weight_value"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=False)
+                    self.data["weight_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=True)
+                    self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= False)
+                    self.data["bias_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= True)
                 if self._opt.std:
-                    self.data["weight"]["std"][epoch_key][layer_key] = self.dataParser(i, "std", isWeight=True)
-                    self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser(i, "std", isWeight=False)
+                    self.data["weight_value"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=False)
+                    self.data["weight_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=True)
+                    self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= False)
+                    self.data["bias_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= True)
                 if self._opt.l2n:
-                    self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=True)
-                    self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=False)
+                    self.data["weight_value"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=False)
+                    self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
+                    self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
+                    self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
             self.clear()
 
     def clear(self):
@@ -87,22 +93,35 @@ class Logger(object):
                     self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
-    def dataParser(self, layer, _type="mean", isWeight=True):
-        if isWeight:
-            grad, value = self.weight_grad[layer], self.weight_value[layer]
+    def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True):
+        # if isWeight:
+        #     grad, value = self.weight_grad[layer], self.weight_value[layer]
+        # else:
+        #     grad, value = self.bias_grad[layer], self.bias_value[layer]
+
+        if isWeight and isGrad:
+            tensor = self.weight_grad[layer]
+        elif isWeight and not isGrad:
+            tensor = self.weight_value[layer]
+        elif not isWeight and isGrad:
+            tensor = self.bias_grad[layer]
+        elif not isWeight and not isGrad:
+            tensor = self.bias_value[layer]
         else:
-            grad, value = self.bias_grad[layer], self.bias_value[layer]
+            raise RuntimeError('error in calculate weight and gradient data')
 
         if _type == "mean":
-            grad = torch.reshape(grad, (grad.shape[0], -1))
-            mean = torch.mean(grad, dim = 0)
+            tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            mean = torch.mean(tensor, dim = 0)
             return torch.norm(mean).item()
         elif _type == "std":
-            grad = torch.reshape(grad, (grad.shape[0], -1))
-            std = torch.std(grad, dim = 0)
+            tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            std = torch.std(tensor, dim = 0)
             return torch.norm(std).item()
         elif _type == "l2n":
-            return torch.norm(value).item()
+            return torch.norm(tensor).item()
+        else:
+            raise RuntimeError('error in calculate weight and gradient data')
 
     def needLog(self, epoch):
         # Only log activity for some epochs.  Mainly this is to make things run faster.
@@ -120,8 +139,8 @@ class Logger(object):
             layer_mean = []
             for layer in range(len(self._opt.layer_dims) - 1):
                 layer_key = 'layer' + str(layer)
-                layer_mean.append(self.data["weight"]["mean"][epoch_key][layer_key])
-                layer_std.append(self.data["weight"]["std"][epoch_key][layer_key])
+                layer_mean.append(self.data["weight_grad"]["mean"][epoch_key][layer_key])
+                layer_std.append(self.data["weight_grad"]["std"][epoch_key][layer_key])
             epoch_mean.append(layer_mean)
             epoch_std.append(layer_std)
         epoch_mean = np.array(epoch_mean)

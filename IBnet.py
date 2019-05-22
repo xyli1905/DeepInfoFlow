@@ -183,7 +183,6 @@ class SaveActivations:
             # saving model for each epoch
             self.save_model(i_epoch)
 
-            # print(self._logger)
         self._logger.plot_mean_std()
         print ('-------------------------training end--------------------------')
         
