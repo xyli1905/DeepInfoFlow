@@ -11,16 +11,18 @@ class Logger(object):
         self.log_seperator = self._opt.log_seperator
         self.log_frequency = self._opt.log_frequency
         self.data = self.createDataDict()
-        self.weight_grad  = [] # for mean, std
-        self.weight_value = [] # for l2n
-        self.bias_grad    = [] # for mean, std
-        self.bias_value   = [] # for l2n
+
+        self.weight_grad  = [] # to store W'
+        self.weight_value = [] # to store W
+        self.bias_grad    = [] # to store bias'
+        self.bias_value   = [] # to store bias
+
         self.plotter = PlotFigure(self._opt, self.plot_name)
         self.recorded_epochs = []
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
-        source_keys  = ["weight", "bias"]
+        source_keys  = ["gradient" ,"weight", "bias", "bias_grad"]
         type_keys    = ["mean", "std", "l2n"]
         epoch_keys   = list(map(lambda x: "epoch" + str(x), [i for i in range(epoch_num)]))
         layer_keys   = list(map(lambda x: "layer" + str(x), [i for i in range(layer_size)]))
@@ -54,13 +56,6 @@ class Logger(object):
                 if self._opt.l2n:
                     self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=True)
                     self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=False)
-
-            # dump grad for debug
-            # pickle.dump(name, f)
-            # with open('grad.pkl', 'ab') as f:
-            #     pickle.dump(self.weight_grad, f)
-            # print(self.weight_grad)
-
             self.clear()
 
     def clear(self):
@@ -106,7 +101,6 @@ class Logger(object):
             grad = torch.reshape(grad, (grad.shape[0], -1))
             std = torch.std(grad, dim = 0)
             return torch.norm(std).item()
-            # return torch.std(grad).item()
         elif _type == "l2n":
             return torch.norm(value).item()
 
