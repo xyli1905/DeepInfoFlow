@@ -15,13 +15,17 @@ class JsonParser(object):
         print ("configs have benn dumped into %s" % json_dir)
 
     def read_json_as_argparse(self, path):
-        json_dir = os.path.join(path, "opt.json")
-        js = open(json_dir).read()
-        data = json.loads(js)
-        opt = argparse.Namespace()
-        for key, val in data.items():
-            setattr(opt, key, val) 
-        return opt
+        try:
+            json_dir = os.path.join(path, "opt.json")
+            js = open(json_dir).read()
+            data = json.loads(js)
+            opt = argparse.Namespace()
+            for key, val in data.items():
+                setattr(opt, key, val) 
+            return opt
+        except Exception as e:
+            print("No such file or directory %s" % (json_dir))
+        
 
         
 
