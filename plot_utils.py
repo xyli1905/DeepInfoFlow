@@ -102,15 +102,17 @@ class PlotFigure:
             legend_std  += ax.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
     
         # ax settings
+        fig.subplots_adjust(right = 0.86)
         ax.set_xscale('log')
-        # ax.set_yscale('log')
+        ax.set_yscale('log')
+        ax.set_ylim(bottom=1.e-5)
         ax.set_xlabel('number of epochs', fontsize=22, **csfont)
         ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
         ax.set_facecolor('#edf0f8')
         ax.grid(color='w', linestyle='-.', linewidth=1)
         ax.tick_params(labelsize=13)
-        leg_mean = ax.legend(legend_mean, layer_mark,  bbox_to_anchor=[0.15, 1], title='Mean')
-        leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[0.3, 1], title='STD')
+        leg_mean = ax.legend(legend_mean, layer_mark,  bbox_to_anchor=[1.15, 1], title='Mean')
+        leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[1.15, 0.6], title='STD')
         ax.add_artist(leg_mean)
         ax.add_artist(leg_std)
 

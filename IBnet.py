@@ -4,7 +4,7 @@ import sys
 import os, pickle
 from collections import defaultdict, OrderedDict
 
-import simplebinmi
+# import simplebinmi
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
@@ -80,7 +80,8 @@ class SaveActivations:
         self._model = Model(activation = self._opt.activation, dims = dims, train=True)
         self._model.apply(weights_init)
         # optimizer
-        self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
+        # self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
+        self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=0.9)
         # loss
         self._criterion = nn.CrossEntropyLoss() # loss
 

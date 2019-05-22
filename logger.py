@@ -2,6 +2,7 @@ import torch
 import pprint
 from plot_utils import PlotFigure
 import numpy as np 
+import pickle
 
 class Logger(object):
     def __init__(self, opt, plot_name):
@@ -53,6 +54,13 @@ class Logger(object):
                 if self._opt.l2n:
                     self.data["weight"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=True)
                     self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser(i, "l2n", isWeight=False)
+
+            # dump grad for debug
+            # pickle.dump(name, f)
+            # with open('grad.pkl', 'ab') as f:
+            #     pickle.dump(self.weight_grad, f)
+            # print(self.weight_grad)
+
             self.clear()
 
     def clear(self):
@@ -92,11 +100,11 @@ class Logger(object):
 
         if _type == "mean":
             grad = torch.reshape(grad, (grad.shape[0], -1))
-            mean = torch.mean(grad, dim = 1)
+            mean = torch.mean(grad, dim = 0)
             return torch.norm(mean).item()
         elif _type == "std":
             grad = torch.reshape(grad, (grad.shape[0], -1))
-            std = torch.std(grad, dim = 1)
+            std = torch.std(grad, dim = 0)
             return torch.norm(std).item()
         elif _type == "l2n":
             return torch.norm(value).item()
