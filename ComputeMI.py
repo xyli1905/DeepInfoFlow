@@ -1,5 +1,5 @@
 import torch
-import numpy as np 
+import numpy as np
 import measure
 import utils
 import os
@@ -15,7 +15,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_IB_net_test_3_Time_05_21_01_09_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_IB_net_test_3_Time_05_21_22_22_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -127,7 +127,7 @@ class ComputeMI:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
             # for each layer compute IX and IY
             IX_epoch = []
-            IY_epoch = [] 
+            IY_epoch = []
             for layer in layer_activity:
                 upper = self.measure.entropy_estimator_kl(layer, 0.001)
                 hM_given_X = self.measure.kde_condentropy(layer, 0.001)
@@ -144,10 +144,6 @@ class ComputeMI:
                 mutual_info_Y = upper - hM_given_Y_upper
                 IY_epoch.append(mutual_info_Y.item() * nats2bits)
 
-            assert len(IX_epoch) == 8, "layer dims error"
-            assert len(IY_epoch) == 8, "layer dims error"
-
-            
             if epoch not in IX.keys() and epoch not in IY.keys():
                 IX[epoch] = IX_epoch
                 IY[epoch] = IY_epoch
@@ -157,7 +153,8 @@ class ComputeMI:
         end = time.time()
         plotter = PlotFigure(self._opt, self.model_name)
         plotter.plot_MI_plane(IX, IY)
-        print(end - start)
+        print(" ")
+        print("total time cost : ", end - start)
 
 
     def needLog(self, epoch):
