@@ -168,7 +168,7 @@ class Logger(object):
             self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
         if svd:
             ##############################################
-            #to do: add method in plot_utils to plot svds#
+            #TO DO: add method in plot_utils to plot svds#
             ##############################################
             pass
 
