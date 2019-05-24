@@ -292,6 +292,5 @@ def main():
     # pltfig.plot_mean_std(Lepoch, mu, sigma)
     
 
-
 if __name__ == "__main__":
     main()

@@ -1,7 +1,5 @@
 numpy
-scipy
 matplotlib
-keras
+pytorch
+torchvision
 pathlib2
-tensorflow
-seaborn

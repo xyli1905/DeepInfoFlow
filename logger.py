@@ -75,15 +75,20 @@ class Logger(object):
         for weight in self.weight_value:
             mean_weight = torch.mean(weight, dim = 0)
             _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
-            one_epoch_weight.append(weight_sigma.numpy())
+            ##NOTE either use the original s or the normalized one
+            # weight_sigma_tmp = weight_sigma.numpy()
+            weight_sigma_tmp = weight_sigma.numpy()
+            one_epoch_weight.append(weight_sigma_tmp/weight_sigma_tmp[0])
             # print(one_epoch_weight)
         self.svds[0].append(one_epoch_weight) # [Lepoch] [NLayer] [weight_layers]
+        ##NOTE svd for grad, note used presently
         # for calcularing grad svd
         # for grad in self.weight_grad:
         #     mean_grad = torch.mean(grad, dim = 0)
         #     _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
         #     one_epoch_grad.append(grad_sigma.numpy())
         # self.svds[1].append(one_epoch_grad)
+        #######################################
 
     def clear(self):
         self.weight_grad = []
@@ -115,7 +120,7 @@ class Logger(object):
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
 
-    def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 2):
+    def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 1):
         if isWeight and isGrad:
             tensor = self.weight_grad[layer]
         elif isWeight and not isGrad:
