@@ -21,6 +21,7 @@ class Logger(object):
         self.recorded_epochs = []
 
         self.svds = [[], []] # first for weight and second for grad
+        
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
@@ -66,6 +67,7 @@ class Logger(object):
                     self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
             self.calculate_svd()
         self.clear()
+
     def calculate_svd(self):
         one_epoch_weight = []
         one_epoch_grad = []
@@ -73,8 +75,9 @@ class Logger(object):
         for weight in self.weight_value:
             mean_weight = torch.mean(weight, dim = 0)
             _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
-            one_epoch_weight.append(weight_sigma)
-        self.svds[0].append(one_epoch_weight)
+            one_epoch_weight.append(weight_sigma.numpy())
+            # print(one_epoch_weight)
+        self.svds[0].append(one_epoch_weight) # [Lepoch] [NLayer] [weight_layers]
         # for calcularing grad svd
         for grad in self.weight_grad:
             mean_grad = torch.mean(grad, dim = 0)
@@ -111,6 +114,7 @@ class Logger(object):
                     self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
+
     def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True):
         if isWeight and isGrad:
             tensor = self.weight_grad[layer]
@@ -167,10 +171,7 @@ class Logger(object):
             epoch_mean, epoch_std = self.get_mean_std()
             self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
         if svd:
-            ##############################################
-            #TO DO: add method in plot_utils to plot svds#
-            ##############################################
-            pass
+            self.plotter.plot_svd(self.recorded_epochs, self.svds)
 
 
     def __str__(self):

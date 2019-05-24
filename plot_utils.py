@@ -1,5 +1,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from cycler import cycler
 import numpy as np
 import datetime
 import os
@@ -31,17 +33,6 @@ class PlotFigure:
         if not os.path.exists(self.model_path):
             os.mkdir(self.model_path)
 
-        # # set saving directory for present model
-        # self.experiment_dir = os.path.join(opt.plot_dir, opt.experiment_name)
-        # if not os.path.exists(self.experiment_dir):
-        #     os.mkdir(self.experiment_dir)
-
-        # # set timestamp to distinguish same model at differet training
-        # timestamp = datetime.datetime.today().strftime('%m_%d_%H_%M')
-        # self.timestamp_dir = os.path.join(self.experiment_dir, timestamp)
-        # if not os.path.exists(self.timestamp_dir):
-        #     os.mkdir(self.timestamp_dir)
-
     def plot_MI_plane(self, MI_X_T, MI_Y_T):
         '''
         plot evolution of mutual information for each layer at different eporchs
@@ -62,14 +53,14 @@ class PlotFigure:
             ax.scatter(MI_X_T[epoch], MI_Y_T[epoch], s=40, facecolor=sm.to_rgba(epoch), zorder=2)
 
         ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
-        ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize=22)
-        ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize=22)
-        # ax.set_xlim(0,8)
-        # ax.set_ylim(0,1)
+        ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize = 22)
+        ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize = 22)
+        ax.set_xlim(bottom = 0.)
+        ax.set_ylim(bottom = 0.)
         ax.set_aspect(1. / ax.get_data_ratio())
         ax.set_facecolor('#edf0f8')
-        ax.grid(color='w', linestyle='-.', linewidth=1)
-        ax.tick_params(labelsize=13)
+        ax.grid(color='w', linestyle='-.', linewidth = 1)
+        ax.tick_params(labelsize = 13)
 
         # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) 
         fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
@@ -78,6 +69,49 @@ class PlotFigure:
         self._save_fig(fig, 'InfoPlan')
 
 
+## NOTE old plot mean std code 2019-05-24
+    # def plot_mean_std(self, Lepoch, mu, sigma):
+    #     '''
+    #     plot the variation of mean and standard devidation for each layer with respect to epoch
+
+    #     Lepoch    --- array of recorded epochs; of dim (Nepoch,)
+    #     mu, sigma --- mean & standard deviation; of dim (Nlayers, feature_dim)
+    #     '''
+    #     Nlayers = mu.shape[1]
+
+    #     fig = plt.figure(figsize=(9,7))
+    #     ax = fig.add_subplot(1,1,1)
+    #     legend_mean = []
+    #     legend_std  = []
+    #     layer_mark = ['layer'+str(i+1) for i in range(Nlayers)]
+        
+    #     # set color and font
+    #     csfont = {'fontname':'Times New Roman'}
+    #     colors = ['b', 'r', 'g', 'c', 'm', 'y', 'orange', 'darkgreen']
+        
+    #     for L in range(Nlayers):
+    #         legend_mean += ax.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
+    #         legend_std  += ax.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
+    
+    #     # ax settings
+    #     ax.set_title(self._opt.activation)
+    #     fig.subplots_adjust(right = 0.86)
+    #     ax.set_xscale('log')
+    #     ax.set_yscale('log')
+    #     ax.set_ylim(bottom=1.e-5)
+    #     ax.set_xlabel('number of epochs', fontsize=22, **csfont)
+    #     ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
+    #     ax.set_facecolor('#edf0f8')
+    #     ax.grid(color='w', linestyle='-.', linewidth=1)
+    #     ax.tick_params(labelsize=13)
+    #     leg_mean = ax.legend(legend_mean, layer_mark,  bbox_to_anchor=[1.15, 1], title='Mean')
+    #     leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[1.15, 0.6], title='STD')
+    #     ax.add_artist(leg_mean)
+    #     ax.add_artist(leg_std)
+
+    #     # set dir for mean_std; saving figure
+    #     self._save_fig(fig, 'Mean_and_STD')
+    
     def plot_mean_std(self, Lepoch, mu, sigma):
         '''
         plot the variation of mean and standard devidation for each layer with respect to epoch
@@ -85,44 +119,133 @@ class PlotFigure:
         Lepoch    --- array of recorded epochs; of dim (Nepoch,)
         mu, sigma --- mean & standard deviation; of dim (Nlayers, feature_dim)
         '''
+        Nlayers = mu.shape[1]
 
-        fig = plt.figure(figsize=(9,7))
-        ax = fig.add_subplot(1,1,1)
+        fig = plt.figure(figsize=(18,14), constrained_layout=True)
+        gs = GridSpec(2, 2, figure=fig, wspace=0.0, hspace=0.0)
+
+        # intial legend setting
         legend_mean = []
         legend_std  = []
-        layer_mark = ['layer'+str(i+1) for i in range(mu.shape[1])]
+        layer_mark = ['layer'+str(i+1) for i in range(Nlayers)]
+        
+        # set color
         colors = ['b', 'r', 'g', 'c', 'm', 'y', 'orange', 'darkgreen']
 
-        # set color and font
-        csfont = {'fontname':'Times New Roman'}
-
-        Nlayers = mu.shape[1]
+        # plotting
+        # 1- mixed mean and std
+        ax1 = fig.add_subplot(gs[0, 0])
         for L in range(Nlayers):
-            legend_mean += ax.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
-            legend_std  += ax.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
-    
-        # ax settings
-        ax.set_title(self._opt.activation)
-        fig.subplots_adjust(right = 0.86)
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.set_ylim(bottom=1.e-5)
-        ax.set_xlabel('number of epochs', fontsize=22, **csfont)
-        ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
-        ax.set_facecolor('#edf0f8')
-        ax.grid(color='w', linestyle='-.', linewidth=1)
-        ax.tick_params(labelsize=13)
-        leg_mean = ax.legend(legend_mean, layer_mark,  bbox_to_anchor=[1.15, 1], title='Mean')
-        leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[1.15, 0.6], title='STD')
-        ax.add_artist(leg_mean)
-        ax.add_artist(leg_std)
+            ax1.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
+            ax1.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
+
+        ax1.set_ylim(bottom=1.e-5)
+        self._commom_ax_setting_mean_std(ax1, "Mean and STD", show_xlabel=False)
+
+        # 2- mean
+        ax2 = fig.add_subplot(gs[0, 1])
+        for L in range(Nlayers):
+            legend_mean += ax2.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
+
+        ax2.set_ylim(ax1.get_ylim())
+        self._commom_ax_setting_mean_std(ax2, "Mean", show_ylabel=False)
+
+        # 3- std
+        ax3 = fig.add_subplot(gs[1, 0])
+        for L in range(Nlayers):
+            legend_std  += ax3.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
+
+        ax3.set_ylim(ax1.get_ylim())
+        self._commom_ax_setting_mean_std(ax3, "STD")        
+
+        # set legend
+        fig.legend(legend_mean, layer_mark, bbox_to_anchor = [0.75, 0.38], 
+                   title="Mean", title_fontsize = 17, fontsize = 17)
+        fig.legend(legend_std,  layer_mark, bbox_to_anchor=[0.85, 0.38],  
+                   title="STD",  title_fontsize = 17, fontsize = 17)
 
         # set dir for mean_std; saving figure
         self._save_fig(fig, 'Mean_and_STD')
+    
+    def _commom_ax_setting_mean_std(self, ax, title_name, show_xlabel=True, show_ylabel=True):
+        csfont = {'fontname':'Times New Roman'}
+
+        ax.set_title(title_name+" ("+self._opt.activation+")", fontsize=20, **csfont)
+        if show_xlabel:
+            ax.set_xlabel('number of epochs', fontsize=22, **csfont)
+        if show_ylabel:
+            ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
+
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+
+        ax.set_facecolor('#edf0f8')
+        ax.grid(color='w', linestyle='-.', linewidth = 1)
+        ax.tick_params(labelsize = 13)
 
 
-    def plot_other(self):
-        pass
+    def plot_svd(self, Lepoch, svd, IS_WEIGHT = True):
+        '''
+        plot the variation of singular value for the averaged weight of each layer with respect to epoch
+
+        Lepoch    --- array of recorded epochs; of dim (Nepoch,)
+        svd       --- list, [[svd_w] [svd_grad]]; [svd_w] = [ [ svd_w_layer_1, ... svd_w_layer_n ]_epoch_1, ... ]
+        '''
+        if IS_WEIGHT:
+            weight_svd = np.array(svd[0])
+        else:
+            weight_svd = np.array(svd[1]) #actually draw svd for w_grad
+
+        Nlayers = len(weight_svd[0])
+
+        fig = plt.figure(figsize=(25,20), constrained_layout=True)
+        gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.0, hspace=0.0)
+
+        # set color and font
+        colors = ['b', 'r', 'g', 'c', 'm', 'y', 'orange', 'darkgreen']
+        cy = cycler('color', colors)
+        csfont = {'fontname':'Times New Roman'}
+
+        # initialize legend settting
+        # legend_svd_w = []
+        # legend_std  = []
+        # layer_mark = ['layer'+str(i+1) for i in range(Nlayers)]
+
+        # plotting
+        L = -1
+        termin = False
+        for i in range(3):
+            if termin:
+                break
+            for j in range(3):
+                L += 1
+                if L >= Nlayers:
+                    break
+                svd_val = list(weight_svd[:,L])
+                ax = fig.add_subplot(gs[i, j])
+                ax.plot(Lepoch, svd_val ,ls='-')
+    
+                # ax settings
+                ax.set_prop_cycle(cy)
+                ax.set_title('layer'+str(L+1)+' ('+self._opt.activation+')', fontsize=20, **csfont)
+                ax.set_xscale('log')
+                ax.set_ylim(bottom = 0.)
+                if i == 2:
+                    ax.set_xlabel('number of epochs', fontsize = 22, **csfont)
+                if j == 0:
+                    ax.set_ylabel('Singular Values', fontsize = 22, **csfont)
+                ax.set_facecolor('#edf0f8')
+                ax.grid(color='w', linestyle='-.', linewidth = 1)
+                ax.tick_params(labelsize = 13)
+        
+        # set legend
+        # leg_svd_w = ax.legend(legend_svd_w, layer_mark,  bbox_to_anchor=[1.15, 1], title='svd_w')
+        # leg_std  = ax.legend(legend_std, layer_mark,  bbox_to_anchor=[1.15, 0.6], title='STD')
+        # ax.add_artist(leg_svd_w)
+        # ax.add_artist(leg_std)
+
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'SingularValues')
 
 
     def _save_fig(self, fig, fig_name):
