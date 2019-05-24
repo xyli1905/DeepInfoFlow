@@ -82,7 +82,7 @@ class Logger(object):
         for grad in self.weight_grad:
             mean_grad = torch.mean(grad, dim = 0)
             _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
-            one_epoch_grad.append(grad_sigma)
+            one_epoch_grad.append(grad_sigma.numpy())
         self.svds[1].append(one_epoch_grad)
 
     def clear(self):

@@ -185,7 +185,7 @@ class PlotFigure:
         ax.tick_params(labelsize = 13)
 
 
-    def plot_svd(self, Lepoch, svd, IS_WEIGHT = True):
+    def plot_svd(self, Lepoch, svd, IS_WEIGHT = False):
         '''
         plot the variation of singular value for the averaged weight of each layer with respect to epoch
 
