@@ -69,7 +69,7 @@ class PlotFigure:
         self._save_fig(fig, 'InfoPlan')
 
 
-## NOTE old plot mean std code 2019-05-24
+## NOTE old plot mean std code for single mean_std figure, 2019-05-24
     # def plot_mean_std(self, Lepoch, mu, sigma):
     #     '''
     #     plot the variation of mean and standard devidation for each layer with respect to epoch
@@ -111,7 +111,8 @@ class PlotFigure:
 
     #     # set dir for mean_std; saving figure
     #     self._save_fig(fig, 'Mean_and_STD')
-    
+##
+
     def plot_mean_std(self, Lepoch, mu, sigma):
         '''
         plot the variation of mean and standard devidation for each layer with respect to epoch
@@ -280,18 +281,14 @@ def main():
     mu = np.random.rand(1, Lepoch.shape[0])
     sigma = np.random.rand(1, Lepoch.shape[0])
 
-
     C = type('type_C', (object,), {})
     opt = C()
 
     opt.plot_dir = './plots'
     opt.experiment_name = 'testdrawing'
     # opt.timestamp = '19050310'
-
     # pltfig = PlotFigure(opt)
-
     # pltfig.plot_MI_plane(x1,y2,x2,y2)
-
     # pltfig.plot_mean_std(Lepoch, mu, sigma)
     
 
