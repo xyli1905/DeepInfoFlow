@@ -70,7 +70,7 @@ class Logger(object):
 
     def calculate_svd(self):
         one_epoch_weight = []
-        one_epoch_grad = []
+        # one_epoch_grad = []
         # for calculating weight svd
         for weight in self.weight_value:
             mean_weight = torch.mean(weight, dim = 0)
@@ -79,11 +79,11 @@ class Logger(object):
             # print(one_epoch_weight)
         self.svds[0].append(one_epoch_weight) # [Lepoch] [NLayer] [weight_layers]
         # for calcularing grad svd
-        for grad in self.weight_grad:
-            mean_grad = torch.mean(grad, dim = 0)
-            _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
-            one_epoch_grad.append(grad_sigma.numpy())
-        self.svds[1].append(one_epoch_grad)
+        # for grad in self.weight_grad:
+        #     mean_grad = torch.mean(grad, dim = 0)
+        #     _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
+        #     one_epoch_grad.append(grad_sigma.numpy())
+        # self.svds[1].append(one_epoch_grad)
 
     def clear(self):
         self.weight_grad = []
@@ -115,7 +115,7 @@ class Logger(object):
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
 
-    def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True):
+    def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 2):
         if isWeight and isGrad:
             tensor = self.weight_grad[layer]
         elif isWeight and not isGrad:
@@ -128,13 +128,38 @@ class Logger(object):
             raise RuntimeError('error in calculate weight and gradient data')
 
         if _type == "mean":
-            reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
-            mean = torch.mean(reshaped_tensor, dim = 0)
-            return torch.norm(mean).item()
+            # reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            # mean = torch.mean(reshaped_tensor, dim = 0)
+            if method == 1:
+                ##METHOD 1: batch-averaged then take norm for each layer
+                mean = torch.mean(tensor, dim = 0)
+                return torch.norm(mean).item()
+            if method == 2:
+                ##METHOD 2: averge tha (abs) of all w in a layer in a epoch
+                mean = torch.mean(tensor.abs())
+                # mean = torch.mean(tensor)
+                return mean.item()
+            if method == 3:
+                ##METHOD 3: average within each layer, then norm along batch
+                reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+                mean = torch.mean(reshaped_tensor, dim = 1)
+                return torch.norm(mean).item()
         elif _type == "std":
-            reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
-            std = torch.std(reshaped_tensor, dim = 0)
-            return torch.norm(std).item()
+            # reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            # std = torch.std(reshaped_tensor, dim = 0)
+            if method == 1:
+                ##METHOD 1: std along batchs then take norm for each layer
+                std = torch.std(tensor, dim = 0)
+                return torch.norm(std).item()
+            if method == 2:
+                ##METHOD 2: std of the average of tha abs of all w in a layer in a epoch
+                mean = torch.mean(tensor, dim = 0)
+                return torch.std(mean).item()
+            if method == 3:
+                ##METHOD 3: cal. std within each layer, then norm along batch
+                reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+                std = torch.std(reshaped_tensor, dim = 1)
+                return torch.norm(std).item()
         elif _type == "l2n":
             return torch.norm(tensor).item()
         else:

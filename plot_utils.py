@@ -195,7 +195,7 @@ class PlotFigure:
         if IS_WEIGHT:
             weight_svd = np.array(svd[0])
         else:
-            weight_svd = np.array(svd[1]) #actually draw svd for w_grad
+            weight_svd = np.array(svd[1]) #actually draw svd for w_grad, not used presently
 
         Nlayers = len(weight_svd[0])
 
