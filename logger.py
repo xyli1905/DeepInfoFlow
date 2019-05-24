@@ -19,6 +19,8 @@ class Logger(object):
 
         self.plotter = PlotFigure(self._opt, self.plot_name)
         self.recorded_epochs = []
+
+        self.svds = [[], []] # first for weight and second for grad
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
@@ -62,7 +64,23 @@ class Logger(object):
                     self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
                     self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
                     self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
-            self.clear()
+            self.calculate_svd()
+        self.clear()
+    def calculate_svd(self):
+        one_epoch_weight = []
+        one_epoch_grad = []
+        # for calculating weight svd
+        for weight in self.weight_value:
+            mean_weight = torch.mean(weight, dim = 0)
+            _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
+            one_epoch_weight.append(weight_sigma)
+        self.svds[0].append(one_epoch_weight)
+        # for calcularing grad svd
+        for grad in self.weight_grad:
+            mean_grad = torch.mean(grad, dim = 0)
+            _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
+            one_epoch_grad.append(grad_sigma)
+        self.svds[1].append(one_epoch_grad)
 
     def clear(self):
         self.weight_grad = []
@@ -94,11 +112,6 @@ class Logger(object):
                     self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                     index += 1
     def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True):
-        # if isWeight:
-        #     grad, value = self.weight_grad[layer], self.weight_value[layer]
-        # else:
-        #     grad, value = self.bias_grad[layer], self.bias_value[layer]
-
         if isWeight and isGrad:
             tensor = self.weight_grad[layer]
         elif isWeight and not isGrad:
@@ -111,12 +124,12 @@ class Logger(object):
             raise RuntimeError('error in calculate weight and gradient data')
 
         if _type == "mean":
-            tensor = torch.reshape(tensor, (tensor.shape[0], -1))
-            mean = torch.mean(tensor, dim = 0)
+            reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            mean = torch.mean(reshaped_tensor, dim = 0)
             return torch.norm(mean).item()
         elif _type == "std":
-            tensor = torch.reshape(tensor, (tensor.shape[0], -1))
-            std = torch.std(tensor, dim = 0)
+            reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
+            std = torch.std(reshaped_tensor, dim = 0)
             return torch.norm(std).item()
         elif _type == "l2n":
             return torch.norm(tensor).item()
@@ -130,7 +143,7 @@ class Logger(object):
             if epoch < val:
                 return epoch % self.log_frequency[idx] == 0
 
-    def plot_mean_std(self):
+    def get_mean_std(self):
         epoch_std = []
         epoch_mean = []
         for epoch in self.recorded_epochs:
@@ -146,7 +159,19 @@ class Logger(object):
         epoch_mean = np.array(epoch_mean)
         epoch_std = np.array(epoch_std)
 
-        self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
+        return epoch_mean, epoch_std
+        # self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
+
+    def plot_figures(self, mean_and_std = True, svd = True):
+        if mean_and_std:
+            epoch_mean, epoch_std = self.get_mean_std()
+            self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
+        if svd:
+            ##############################################
+            #to do: add method in plot_utils to plot svds#
+            ##############################################
+            pass
+
 
     def __str__(self):
         pprint.pprint(self.data)

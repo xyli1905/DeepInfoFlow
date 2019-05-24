@@ -15,7 +15,7 @@ class BaseOption:
         self._parser.add_argument('--experiment_name', type=str, default='IB_net_test_3', help='a unique name for experiment')
         self._parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=100, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=200, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
         self._parser.add_argument('--layer_dims', type=list, default=[12, 12, 10, 7, 5, 4, 3, 2, 2], help='dimention of each layer')
