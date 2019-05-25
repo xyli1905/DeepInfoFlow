@@ -57,6 +57,24 @@ class kde:
         return (dims/2.0)*(np.log(2*np.pi*var) + 1)
 
 
-class NewMeasure:
+# measre based on the variational empirical estimation of K-L divergence
+class VEKL:
     def __init__(self):
+        pass
+
+    def MI_estimator(self):
+        pass
+
+    def _prepare_Kyy_Kxy(self, x, y):
+        '''
+        Compute: 
+            first, Kyy := K(yi,yj) and Kxy := K(xi, yj);
+            then Q = 1/lambda * Kyy, and
+                 c = - 1/(n*lambda) * Kxy^T @ ones
+        where
+            K(x, y) = 
+        '''
+        pass
+
+    def _QP_log_barrier(self):
         pass
