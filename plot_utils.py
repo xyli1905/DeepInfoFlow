@@ -120,6 +120,7 @@ class PlotFigure:
         Lepoch    --- array of recorded epochs; of dim (Nepoch,)
         mu, sigma --- mean & standard deviation; of dim (Nlayers, feature_dim)
         '''
+
         Nlayers = mu.shape[1]
 
         fig = plt.figure(figsize=(18,14), constrained_layout=True)
@@ -185,18 +186,21 @@ class PlotFigure:
         ax.tick_params(labelsize = 13)
 
 
-    def plot_svd(self, Lepoch, svd, IS_WEIGHT = True):
+    def plot_svd(self, Lepoch, svd):
+        '''
+        plot for both original and normalized versions
+        '''
+        self._func_plot_svd(Lepoch, np.array(svd[0]), "_original")
+        self._func_plot_svd(Lepoch, np.array(svd[1]), "_normalized")
+
+
+    def _func_plot_svd(self, Lepoch, weight_svd, nameflag):
         '''
         plot the variation of singular value for the averaged weight of each layer with respect to epoch
 
         Lepoch    --- array of recorded epochs; of dim (Nepoch,)
         svd       --- list, [[svd_w] [svd_grad]]; [svd_w] = [ [ svd_w_layer_1, ... svd_w_layer_n ]_epoch_1, ... ]
         '''
-        if IS_WEIGHT:
-            weight_svd = np.array(svd[0])
-        else:
-            weight_svd = np.array(svd[1]) #actually draw svd for w_grad, not used presently
-
         Nlayers = len(weight_svd[0])
 
         fig = plt.figure(figsize=(25,20), constrained_layout=True)
@@ -224,7 +228,7 @@ class PlotFigure:
                     break
                 svd_val = list(weight_svd[:,L])
                 ax = fig.add_subplot(gs[i, j])
-                ax.plot(Lepoch, svd_val ,ls='-')
+                ax.plot(Lepoch, svd_val ,ls='-', marker='o', ms = 4)
     
                 # ax settings
                 ax.set_prop_cycle(cy)
@@ -246,7 +250,7 @@ class PlotFigure:
         # ax.add_artist(leg_std)
 
         # set dir for mean_std; saving figure
-        self._save_fig(fig, 'SingularValues')
+        self._save_fig(fig, 'SingularValues'+nameflag)
 
 
     def _save_fig(self, fig, fig_name):
