@@ -69,12 +69,46 @@ class VEKL:
         '''
         Compute: 
             first, Kyy := K(yi,yj) and Kxy := K(xi, yj);
-            then Q = 1/lambda * Kyy, and
-                 c = - 1/(n*lambda) * Kxy^T @ ones
+            then Q = 1/lambdaN * Kyy, and
+                 c = - 1/(n*lambdaN) * Kxy^T @ ones
         where
-            K(x, y) = 
+            K(x, y) = exp(-||x - y||^2 / sigma),
+            hyper params: lambdaN, sigma
+            (ones are n*1 matrix with all element being 1.)
+
+        return Q and c for method _QP_log_barrier()
         '''
-        pass
+        # get number of samples
+        Nsamples = x.shape[0]
+
+        # parameters, for test presently
+        lambdaN = 1./Nsamples
+        sigma = 1.0
+
+        # compute Kxy
+        var = np.zeros(Nsamples, Nsamples)
+        for i in range(Nsamples):
+            for j in range(Nsamples):
+                delta = x[i,:] - y[j,:]
+                mu2 = np.dot(delta, delta)
+                var[i,j] = -1.0 * mu2 / sigma
+        Kxy = np.exp(var)
+        
+        # compute Kyy
+        var = np.zeros(Nsamples, Nsamples)
+        for i in range(Nsamples):
+            for j in range(i, Nsamples):
+                delta = y[i,:] - y[j,:]
+                mu2 = np.dot(delta, delta)
+                var[i,j] = -1.0 * mu2 / sigma
+                var[j,i] = var[i,j]
+        Kyy = np.exp(var)
+
+        Q = Kyy/lambdaN
+        c = np.transpose(Kxy) @ np.ones(Nsamples, 1) / (-1.0 * lambdaN * Nsamples)
+
+        return Q, c 
+        
 
     def _QP_log_barrier(self):
         pass
