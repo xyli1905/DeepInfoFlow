@@ -15,7 +15,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_IB_net_test_3_Time_05_21_22_22_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_IB_net_test_3_Time_05_24_22_24_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -45,7 +45,7 @@ class ComputeMI:
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
-        
+
         # get model
         self._model = Model(activation = self._opt.activation ,dims = self._opt.layer_dims, train = False)
         # get measure
@@ -74,6 +74,94 @@ class ComputeMI:
     def launch_computeMI_Thread(self):
             t = threading.Thread(target=self.computeMI)
             t.start()
+
+    def random_index(self, size, max_size=4096):
+        index_pairs = {
+			"XT": np.random.choice(max_size, size),   # indexes of P(X, T)
+			"YT": np.random.choice(max_size, size),   # indexes of P(Y, T)
+			"X_XT" : np.random.choice(max_size, size), # indexes of X in P(X)P(T)
+			"T_XT" : np.random.choice(max_size, size), # indexes of T in P(X)P(T)
+			"Y_YT" : np.random.choice(max_size, size), # indexes of Y in P(Y)P(T)
+			"T_YT" : np.random.choice(max_size, size)  # indexes of T in P(Y)P(T)
+		}
+        return index_pairs
+
+    # proposed method for empirical variational analysis
+    def EVMethod(self):
+        start = time.time()
+
+        progress = 0
+
+        epoch_files = os.listdir(self.path)
+        for epoch_file in epoch_files:
+
+            progress += 1
+            random_indexes = self.random_index(10)
+
+            random_sampled_points = {}
+
+            self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
+            print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)
+            if not epoch_file.endswith('.pth'):
+                continue
+            # load ckpt
+            ckpt = torch.load(os.path.join(self.path, epoch_file))
+            epoch = ckpt['epoch']
+
+            #check if this epoch need to be calculated
+            if not self.needLog(epoch):
+                continue
+
+            # load model epoch weight
+            self._model.load_state_dict(ckpt['model_state_dict'])
+            # set model to eval
+            self._model.eval()
+
+            # container for activations, features and labels
+            layer_activity = []
+            X = []
+            Y = []
+
+            # inference on test set to get layer activations
+            for j, (inputs, labels) in enumerate(self._test_set):
+                outputs = self._model(inputs)
+                Y.append(labels.clone().squeeze(0).numpy())
+                X.append(inputs.clone().squeeze(0).numpy())
+
+                # for each layer activation add to container
+                for i in range(len(outputs)):
+                    data = outputs[i]
+                    if len(layer_activity) < len(outputs):
+                        layer_activity.append(data)
+                    else:
+                        layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
+
+            X = np.array(X)
+            Y = np.array(Y)
+
+            for layer in layer_activity:
+                layer = layer.numpy()
+
+                # random sampling all the data
+                XT_X = X[random_indexes["XT"]] # P(X,T) for X
+                YT_Y = Y[random_indexes["YT"]] # P(Y,T) for Y
+                XT_T = layer[random_indexes["XT"]] # P(X,T) for T
+                YT_T = layer[random_indexes["YT"]] # P(Y,T) for T
+
+
+                X_XT = X[random_indexes["X_XT"]] # P(X)(Y) for X
+                Y_YT = Y[random_indexes["Y_YT"]] # P(Y)(T) for Y
+                T_XT = layer[random_indexes["T_XT"]] # P(X)P(T) for T
+                T_YT = layer[random_indexes["T_YT"]] # P(Y)P(T) for T
+
+
+
+
+
+        end = time.time()
+        print(" ")
+        print("total time cost : ", end - start)
+
 
     def computeMI(self):
         saved_labelixs, label_probs = self.get_saved_labelixs_and_labelprobs()
@@ -167,4 +255,5 @@ class ComputeMI:
 
 if __name__ == "__main__":
     t = ComputeMI()
-    t.computeMI()
+    # t.computeMI()
+    t.EVMethod()
