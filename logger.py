@@ -20,7 +20,7 @@ class Logger(object):
         self.plotter = PlotFigure(self._opt, self.plot_name)
         self.recorded_epochs = []
 
-        self.svds = [[], []] # first for weight and second for grad
+        self.svds = [[], []] # first for original SVD and second for normalized SVD
         
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
@@ -69,18 +69,21 @@ class Logger(object):
         self.clear()
 
     def calculate_svd(self):
-        one_epoch_weight = []
+        one_epoch_original_weight = []
+        one_epoch_normalized_weight = []
         # one_epoch_grad = []
+
         # for calculating weight svd
         for weight in self.weight_value:
             mean_weight = torch.mean(weight, dim = 0)
             _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
             ##NOTE either use the original s or the normalized one
-            # weight_sigma_tmp = weight_sigma.numpy()
             weight_sigma_tmp = weight_sigma.numpy()
-            one_epoch_weight.append(weight_sigma_tmp/weight_sigma_tmp[0])
+            one_epoch_normalized_weight.append(weight_sigma_tmp/weight_sigma_tmp[0])
+            one_epoch_original_weight.append(weight_sigma_tmp)
             # print(one_epoch_weight)
-        self.svds[0].append(one_epoch_weight) # [Lepoch] [NLayer] [weight_layers]
+        self.svds[0].append(one_epoch_original_weight) # [Lepoch] [NLayer] [weight_layers]
+        self.svds[1].append(one_epoch_normalized_weight) # [Lepoch] [NLayer] [weight_layers]
         ##NOTE svd for grad, note used presently
         # for calcularing grad svd
         # for grad in self.weight_grad:
@@ -153,7 +156,7 @@ class Logger(object):
             # reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
             # std = torch.std(reshaped_tensor, dim = 0)
             if method == 1:
-                ##METHOD 1: std along batchs then take norm for each layer
+                ##METHOD 1: std along batches then take norm for each layer
                 std = torch.std(tensor, dim = 0)
                 return torch.norm(std).item()
             if method == 2:
@@ -194,7 +197,6 @@ class Logger(object):
         epoch_std = np.array(epoch_std)
 
         return epoch_mean, epoch_std
-        # self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
 
     def plot_figures(self, mean_and_std = True, svd = True):
         if mean_and_std:
