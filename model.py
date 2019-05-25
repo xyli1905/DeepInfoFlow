@@ -19,24 +19,51 @@ class Model(nn.Module):
 
         if name == 'tanh':
             for i in range(depth):
-                # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    # setattr(self, 'Activ' + str(i), nn.Tanh())
                     numOfActiv -= 1
                     self.A.append(nn.Tanh())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
 
-
         elif name == 'relu':
             for i in range(depth):
-                # setattr(self, 'Dense' + str(i), nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
                 if numOfActiv > 0:
-                    # setattr(self, 'Activ' + str(i), nn.ReLU())
                     numOfActiv -= 1
                     self.A.append(nn.ReLU())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
- 
+
+        elif name == 'relu6':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.ReLU6())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        elif name == 'elu':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.ELU())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        elif name == 'prelu':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.PReLU())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        elif name == 'leakyRelu':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.LeakyReLU())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        else:
+            raise RuntimeError('Do not have {activation} activation function please check your options'.format(activation = name))
+
+
 
     def forward(self, x):
         if len(x.shape) > 2:
