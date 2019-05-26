@@ -6,22 +6,44 @@ def acent(Q, c, G, h):
     def F(x=None, z=None):
         if x is None: return 0, matrix(1.0, (n,1))
         if min(x) <= 0.0: return None
-        # f = -sum(log(x))/ n + 0.5 * x.T * Q * x + c.T * x
-        f =  0.5 * x.T * Q * x + c.T * x
-        # Df = -(x**-1).T + x.T * Q + c.T
-        Df = x.T * Q + c.T
+        f = -sum(log(x))/n + 0.5 * x.T * Q * x + c.T * x
+        # f =  0.5 * x.T * Q * x + c.T * x # test for qp
+        Df = -(x**-1).T/n + x.T * Q + c.T
+        # Df = x.T * Q + c.T # test for qp
         if z is None: return f, Df
-        # H = spdiag(z[0] * x**-2)
-        H = z[0] * Q 
+        H = spdiag(z[0] * x**-2) + z[0] * Q
+        # H = z[0] * Q  # test for qp
         return f, Df, H
     return solvers.cp(F, G=G, h=h)['x']
 
 
 if __name__ == '__main__':
     dim = 100
-    Q_n = np.random.rand(dim, dim)
-    Q_n = Q_n.T @ Q_n
-    c_n = np.random.rand(dim, 1)
+
+    x = np.random.rand(dim, 16)
+    y = np.random.rand(dim, 16)
+
+    # compute Kyy
+    var = np.zeros((dim, dim))
+    for i in range(dim):
+        for j in range(dim):
+            delta = x[i,:] - y[j,:]
+            mu2 = np.dot(delta, delta)
+            var[i,j] = -1.0 * mu2 # sigma == 1
+    Kxy = np.exp(var)
+    c_n = - np.transpose(Kxy) @ np.ones((dim, 1))
+    # print(c_n.shape)
+    
+    # compute Kyy
+    var = np.zeros((dim, dim))
+    for i in range(dim):
+        for j in range(i, dim):
+            delta = y[i,:] - y[j,:]
+            mu2 = np.dot(delta, delta)
+            var[i,j] = -1.0 * mu2 
+            var[j,i] = var[i,j]
+    Kyy = np.exp(var)
+    Q_n = dim * Kyy
 
     g_n = np.ones(dim) * -1.0
     G_n = np.diag(g_n)
@@ -37,32 +59,11 @@ if __name__ == '__main__':
     # print(G_n)
 
     res = np.array(acent(Q, c, G, h))
-    sol = np.array(solvers.qp(Q, c, G = G, h= h)['x'])
+    # sol = np.array(solvers.qp(Q, c, G = G, h= h)['x'])
     
-    test1 = 0.5 * res.T @ Q_n @ res + c.T @ res
-    test2 = 0.5 * sol.T @ Q_n @ sol + c.T @ sol
-    print(test1, test2)
+    # print(np.linalg.norm(res - sol))
 
-
-# from cvxopt import matrix, log, div, spdiag, solvers
-
-# def F(x = None, z = None):
-#      if x is None:  return 0, matrix(0.0, (3,1))
-#      if max(abs(x)) >= 1.0:  return None
-#      u = 1 - x**2
-#      val = -sum(log(u))
-#      Df = div(2*x, u).T
-#      if z is None:  return val, Df
-#      H = spdiag(2 * z[0] * div(1 + u**2, u**2))
-#      return val, Df, H
-
-# G = matrix([ [0., -1.,  0.,  0., -21., -11.,   0., -11.,  10.,   8.,   0.,   8., 5.],
-#              [0.,  0., -1.,  0.,   0.,  10.,  16.,  10., -10., -10.,  16., -10., 3.],
-#              [0.,  0.,  0., -1.,  -5.,   2., -17.,   2.,  -6.,   8., -17.,  -7., 6.] ])
-# h = matrix([1.0, 0.0, 0.0, 0.0, 20., 10., 40., 10., 80., 10., 40., 10., 15.])
-# dims = {'l': 0, 'q': [4], 's':  [3]}
-# sol = solvers.cp(F, G, h, dims)
-# print(sol['x'])
-# # [ 4.11e-01]
-# # [ 5.59e-01]
-# # [-7.20e-01]
+    test1 = 0.5 * res.T @ Q_n @ res + c.T @ res - np.sum(np.log(res)) / dim
+    # test2 = 0.5 * sol.T @ Q_n @ sol + c.T @ sol
+    # print(test1, test2)
+    print(test1)
