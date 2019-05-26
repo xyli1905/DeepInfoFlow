@@ -1,5 +1,6 @@
 import numpy as np
 import pprint
+import time
 
 class LogBarrier(object):
 	"""
@@ -18,27 +19,24 @@ class LogBarrier(object):
 		return np.array(l_alpha_pos).reshape(n, 1)
 
 	def compute_alpha(self, Q, C):
-		epsilon = 1.e-3
+		epsilon = 1.e-10
 		r = 0.99
 
 		n = Q.shape[0]
 		# alpha = np.ones((n, 1)) * 10.0 #self.init_alpha(Q, C, epsilon)
 		alpha = self.init_alpha(Q, C)
-		# print (alpha)
 
-		h = np.matmul(Q, alpha) + C - 1.0/(n *alpha + self.accuracy)
+		h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
 		converge_cond = np.linalg.norm(h) <= epsilon
 
 		count = 0
 		while not converge_cond and count < 10000:
 			d = self.Newtons_method(Q, alpha, h)
 			selected_d_over_delta_d = [alpha[j] / -d[j] for j in range(n) if d[j] < 0]
-			# print(len(selected_d_over_delta_d))
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
-			# theta = 1.0
+
 			alpha = alpha + theta * d
-			h = np.matmul(Q, alpha) + C - 1.0/(n *alpha + self.accuracy)
-			# h = np.matmul(Q, alpha) + C
+			h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
 			converge_cond = np.linalg.norm(h) <= epsilon
 			count += 1
 
@@ -50,33 +48,55 @@ class LogBarrier(object):
 			# print ("       ")
 			# time.sleep(0.5)
 
-		print (alpha)
+		print (np.linalg.norm(np.matmul(Q, alpha) + C - 1.0/(n * alpha)))
 		return alpha
 
 	def Newtons_method(self, Q, alpha, h):
 		
 		n = alpha.shape[0]
-		# 1
-		# print(alpha[0])
 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), alpha)))
-		# print(dB.shape)
 		delta = np.diag(dB[:,0])
 		# print("drtestesras: ",delta.shape)
 		H = Q + 1.0 / n * delta
 		H_inv = np.linalg.inv(H)
-		# print(np.linalg.det(H), np.linalg.det(H_inv))
 		res = -np.matmul(H_inv, h)
 		return res
 
 
 
 if __name__ == '__main__':
-	dim = 100
-	Q = np.random.rand(dim, dim)
-	Q = Q.T @ Q
-	print(np.linalg.det(Q))
-	C = np.random.rand(dim, 1)
+	dim = 1000
+
+	x = np.random.rand(dim, 16)
+	y = np.random.rand(dim, 16)
+
+	# compute Kyy
+	var = np.zeros((dim, dim))
+	for i in range(dim):
+		for j in range(dim):
+			delta = x[i,:] - y[j,:]
+			mu2 = np.dot(delta, delta)
+			var[i,j] = -1.0 * mu2 # sigma == 1
+	Kxy = np.exp(var)
+	c_n = - np.transpose(Kxy) @ np.ones((dim, 1))
+	# print(c_n.shape)
+
+	# compute Kyy
+	var = np.zeros((dim, dim))
+	for i in range(dim):
+		for j in range(i, dim):
+			delta = y[i,:] - y[j,:]
+			mu2 = np.dot(delta, delta)
+			var[i,j] = -1.0 * mu2 
+			var[j,i] = var[i,j]
+	Kyy = np.exp(var)
+	Q_n = dim * Kyy
+	# print(np.linalg.det(Q_n))
+
+	t_begin = time.time()
 	l = LogBarrier()
-	l.compute_alpha(Q, C)
+	l.compute_alpha(Q_n, c_n)
+	t_end = time.time()
+	print(f"time cost {t_end - t_begin:.5f}(s)")
 
 
