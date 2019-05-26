@@ -59,7 +59,7 @@ class LogBarrier(object):
 			# time.sleep(0.5)
 
 		# output
-		if count == self.MAX_COUNT:
+		if count >= self.MAX_COUNT:
 			print("Terminated (maximum number of iterations reached).")
 		if self.PRINT:
 			print("After converge(termination), the val of ||h||_2 and f, i.e. the objective, are:")
