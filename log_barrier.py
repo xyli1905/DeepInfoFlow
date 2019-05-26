@@ -10,34 +10,44 @@ class LogBarrier(object):
 		h : 	n * 1
 	"""
 	def __init__(self):
-		self.accuracy = 1.e-16
+		# params
+		self.accuracy = 1.e-16 # avoiding numerical overflow
+		self.MAX_COUNT = 10000 # max iter number in compute_alpha
+		self.epsilon = 1.e-10  # control convergence of compute_alpha
 
-	def init_alpha(self, Q, C):
+		if __name__ == '__main__':
+			self.PRINT = True
+		else:
+			self.PRINT = False
+
+	def _init_alpha(self, Q, C):
 		n = Q.shape[0]
 		alpha_est = np.matmul(np.linalg.inv(Q), (np.ones((n, 1)) - C))
 		l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
 		return np.array(l_alpha_pos).reshape(n, 1)
 
 	def compute_alpha(self, Q, C):
-		epsilon = 1.e-10
-		r = 0.99
-
+		# params
+		r = 0.99 # can be any number that restrictly < 1.0
 		n = Q.shape[0]
-		# alpha = np.ones((n, 1)) * 10.0 #self.init_alpha(Q, C, epsilon)
-		alpha = self.init_alpha(Q, C)
+
+		# initialize alpha for iteration
+		# alpha = np.ones((n, 1)) * 10.0 #self.init_alpha(Q, C, self.epsilon)
+		alpha = self._init_alpha(Q, C)
 
 		h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
-		converge_cond = np.linalg.norm(h) <= epsilon
+		converge_cond = np.linalg.norm(h) <= self.epsilon
 
+		# main loop
 		count = 0
-		while not converge_cond and count < 10000:
-			d = self.Newtons_method(Q, alpha, h)
+		while not converge_cond and count < self.MAX_COUNT:
+			d = self._Newtons_method(Q, alpha, h)
 			selected_d_over_delta_d = [alpha[j] / -d[j] for j in range(n) if d[j] < 0]
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
 
 			alpha = alpha + theta * d
 			h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
-			converge_cond = np.linalg.norm(h) <= epsilon
+			converge_cond = np.linalg.norm(h) <= self.epsilon
 			count += 1
 
 			# import time
@@ -48,11 +58,20 @@ class LogBarrier(object):
 			# print ("       ")
 			# time.sleep(0.5)
 
-		print (np.linalg.norm(np.matmul(Q, alpha) + C - 1.0/(n * alpha)))
+		# output
+		if count == self.MAX_COUNT:
+			print("Terminated (maximum number of iterations reached).")
+		if self.PRINT:
+			print("After converge(termination), the val of ||h||_2 and f, i.e. the objective, are:")
+			print("||h||_2 = ", np.linalg.norm(np.matmul(Q, alpha) + C - 1.0/(n * alpha)))
+			print("f = ", 0.5 * alpha.T @ Q @ alpha + C.T @ alpha - np.sum(np.log(alpha))/n)
+
 		return alpha
 
-	def Newtons_method(self, Q, alpha, h):
-		
+	def _Newtons_method(self, Q, alpha, h):
+		'''
+		Newton's method, getting the update step
+		'''
 		n = alpha.shape[0]
 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), alpha)))
 		delta = np.diag(dB[:,0])
