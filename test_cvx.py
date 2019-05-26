@@ -11,7 +11,8 @@ def acent(Q, c, G, h):
         # Df = -(x**-1).T + x.T * Q + c.T
         Df = x.T * Q + c.T
         if z is None: return f, Df
-        H = spdiag(z[0] * x**-2)
+        # H = spdiag(z[0] * x**-2)
+        H = z[0] * Q 
         return f, Df, H
     return solvers.cp(F, G=G, h=h)['x']
 
