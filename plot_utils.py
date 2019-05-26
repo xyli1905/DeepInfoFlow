@@ -55,7 +55,7 @@ class PlotFigure:
         ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize = 22)
         ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize = 22)
-        ax.set_xlim(bottom = 0.)
+        ax.set_xlim(left = 0.)
         ax.set_ylim(bottom = 0.)
         ax.set_aspect(1. / ax.get_data_ratio())
         ax.set_facecolor('#edf0f8')
@@ -275,10 +275,12 @@ def main():
     '''test run
     '''
     # test data for plot_MI_plane
-    x1 = np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ])
-    y1 = np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
-    x2 = np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
-    y2 = np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
+    x = {0: np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ]),
+         1: np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
+    }  
+    y = {0: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ]),
+         1: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
+    }
 
     # test data for plot_MI_plane
     Lepoch = np.array([1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900])
@@ -289,10 +291,11 @@ def main():
     opt = C()
 
     opt.plot_dir = './plots'
-    opt.experiment_name = 'testdrawing'
+    opt.max_epoch = 10
+    model_name = 'testdrawing'
     # opt.timestamp = '19050310'
-    # pltfig = PlotFigure(opt)
-    # pltfig.plot_MI_plane(x1,y2,x2,y2)
+    pltfig = PlotFigure(opt, model_name)
+    pltfig.plot_MI_plane(x,y)
     # pltfig.plot_mean_std(Lepoch, mu, sigma)
     
 
