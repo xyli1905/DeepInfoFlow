@@ -53,8 +53,8 @@ class kde:
         return (dims/2.0)*(np.log(2*np.pi*var) + 1)
 
 
-# measre based on the variational empirical estimation of K-L divergence
-class VEKL:
+# measre based on the Empirical estimation of Variational form for K-L divergence (EVKL)
+class EVKL:
     def __init__(self):
         pass
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     x = np.random.rand(dim, 16)
     y = np.random.rand(dim, 16)
 
-    VEKL_test = VEKL()
-    Dkl_test = VEKL_test.MI_estimator(x, y)
+    EVKL_test = EVKL()
+    Dkl_test = EVKL_test.MI_estimator(x, y)
 
     print(Dkl_test)

@@ -15,7 +15,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_IB_net_test_3_Time_05_24_22_24_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_test_normalizedSVD_Time_05_24_16_49_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -49,7 +49,8 @@ class ComputeMI:
         # get model
         self._model = Model(activation = self._opt.activation ,dims = self._opt.layer_dims, train = False)
         # get measure
-        self.measure = measure.kde()
+        # self.measure = measure.kde()
+        self.measure = measure.EVKL() # our new measure
 
 
     def get_saved_labelixs_and_labelprobs(self):
@@ -140,7 +141,7 @@ class ComputeMI:
             Y = np.array(Y)
 
             for layer in layer_activity:
-                layer = layer.numpy()
+                layer = layer.detach().numpy()
 
                 # random sampling all the data
                 XT_X = X[random_indexes["XT"]] # P(X,T) for X
@@ -148,13 +149,22 @@ class ComputeMI:
                 XT_T = layer[random_indexes["XT"]] # P(X,T) for T
                 YT_T = layer[random_indexes["YT"]] # P(Y,T) for T
 
-
                 X_XT = X[random_indexes["X_XT"]] # P(X)(Y) for X
                 Y_YT = Y[random_indexes["Y_YT"]] # P(Y)(T) for Y
                 T_XT = layer[random_indexes["T_XT"]] # P(X)P(T) for T
                 T_YT = layer[random_indexes["T_YT"]] # P(Y)P(T) for T
 
+                # MI for X and T: I(X;T) = Dkl(P(X,T)||P(X)P(T))
+                sample_XT_pair = np.concatenate((XT_X, XT_T), axis = 1)
+                sample_X_and_T = np.concatenate((X_XT, T_XT), axis = 1)
 
+                IX = self.measure.MI_estimator(sample_XT_pair, sample_X_and_T)
+
+                # MI for Y and T: I(Y;T) = Dkl(P(Y,T)||P(Y)P(T))
+                sample_YT_pair = np.concatenate((YT_Y, YT_T), axis = 1)
+                sample_Y_and_T = np.concatenate((Y_YT, T_YT), axis = 1)
+
+                IY = self.measure.MI_estimator(sample_YT_pair, sample_Y_and_T)
 
 
 
