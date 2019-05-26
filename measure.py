@@ -14,7 +14,6 @@ class kde:
         dists = x2 + torch.transpose(x2, 0, 1) - 2*torch.matmul(X, torch.transpose(X, 0,1))
         return dists
 
-
     def get_shape(self, x):
         '''
         assuming x is torch tensor
@@ -132,7 +131,7 @@ class VEKL:
         '''
         N = alpha.shape[0]
         # print(alpha)
-        return np.log(N) - np.sum(np.log(alpha))/N
+        return -np.log(N) - np.sum(np.log(alpha))/N
 
     def _cvx_cp(self):
         pass
