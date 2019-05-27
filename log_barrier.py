@@ -25,8 +25,9 @@ class LogBarrier(object):
 		try:
 			alpha_est = np.matmul(np.linalg.pinv(Q), (np.ones((n, 1)) - C))
 			l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
-		except:
+		except Exception as e:
 			print("gua in init_alpha")
+			print(e)
 			f = open("tmp_init.txt", "w")
 			f.write(str(list(Q)))
 			f.close()
@@ -87,8 +88,9 @@ class LogBarrier(object):
 		try:
 			H_inv = np.linalg.pinv(H)
 			res = -np.matmul(H_inv, h)
-		except:
+		except Exception as e:
 			print("gua in newton method")
+			print(e)
 			f = open("tmp_newton.txt", "w")
 			f.write(str(list(H)))
 			f.close()
