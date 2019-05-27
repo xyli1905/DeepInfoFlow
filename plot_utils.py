@@ -33,7 +33,8 @@ class PlotFigure:
         if not os.path.exists(self.model_path):
             os.mkdir(self.model_path)
 
-    def plot_MI_plane(self, MI_X_T, MI_Y_T):
+##NOTE old plot_MI_plane for single figure
+    def plot_MI_plane_1(self, MI_X_T, MI_Y_T):
         '''
         plot evolution of mutual information for each layer at different eporchs
         '''
@@ -61,6 +62,58 @@ class PlotFigure:
         ax.set_facecolor('#edf0f8')
         ax.grid(color='w', linestyle='-.', linewidth = 1)
         ax.tick_params(labelsize = 13)
+
+        # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) 
+        fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
+
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'InfoPlan_original')
+
+    def plot_MI_plane(self, MI_X_T, MI_Y_T):
+        '''
+        plot evolution of mutual information for each layer at different eporchs
+        MI_X_T & MI_Y_T: dictionary, key -> #epoch, value -> List of len Nlayers 
+        '''
+        Nlayers = len(MI_X_T[0])
+        Lepoch = MI_X_T.keys()
+
+        fig = plt.figure(figsize=(25,20), constrained_layout=True)
+        gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.0, hspace=0.0)
+
+        # set colormap and font
+        sm = plt.cm.ScalarMappable(cmap='gnuplot', 
+                                   norm=plt.Normalize(vmin=0, vmax=self._opt.max_epoch))
+        sm._A = []
+        csfont = {'fontname':'Times New Roman'}
+
+        # plotting
+        L = -1
+        termin = False
+        for i in range(3):
+            if termin:
+                break
+            for j in range(3):
+                L += 1
+                if L >= Nlayers:
+                    termin = True
+                    break
+
+                ax = fig.add_subplot(gs[i, j])
+                for epoch in Lepoch:
+                    ax.scatter(MI_X_T[epoch][L], MI_Y_T[epoch][L], s=40, facecolor=sm.to_rgba(epoch))
+
+                # ax setting
+                ax.set_title('Information Plane (layer'+str(L+1)+")", fontsize = 26, **csfont)
+                if i == 2:
+                    ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize = 22)
+                if j == 0:
+                    ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize = 22)
+                # ax.set_xlim(left = 0., right=13.)
+                # ax.set_ylim(bottom = 0., top = 1.1)
+                ax.set_aspect(1. / ax.get_data_ratio())
+                ax.set_facecolor('#edf0f8')
+                ax.grid(color='w', linestyle='-.', linewidth = 1)
+                ax.tick_params(labelsize = 13)
 
         # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) 
         fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05)#, cax=cbaxes)
