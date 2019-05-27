@@ -112,13 +112,13 @@ if __name__ == '__main__':
 	# y = np.random.rand(dim, 16)
 	# x = np.random.normal(4., 2., (dim, 1))
 	# y = np.random.normal(0., 1., (dim, 1))
-	# x = np.random.normal(0., 1., (dim, 1))
-	# y = np.random.normal(4., 2., (dim, 1))
-	x = np.random.beta(1., 2., size=(dim, 1))
-	y = np.random.uniform(low=0.0, high=1.0, size=(dim, 1))
+	x = np.random.normal(0., 1., (dim, 1))
+	y = np.random.normal(4., 2., (dim, 1))
+	# x = np.random.beta(1., 2., size=(dim, 1))
+	# y = np.random.uniform(low=0.0, high=1.0, size=(dim, 1))
 
 	lambdaN = 1./dim
-	sigma = 0.1
+	sigma = .1
 
 	# compute Kyy
 	var = np.zeros((dim, dim))
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 		for j in range(i, dim):
 			delta = y[i,:] - y[j,:]
 			mu2 = np.dot(delta, delta)
-			var[i,j] = -1.0 * mu2 
+			var[i,j] = -1.0 * mu2  / sigma
 			var[j,i] = var[i,j]
 	Kyy = np.exp(var)
 	Q_n = Kyy / lambdaN
