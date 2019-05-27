@@ -22,8 +22,15 @@ class LogBarrier(object):
 
 	def _init_alpha(self, Q, C):
 		n = Q.shape[0]
-		alpha_est = np.matmul(np.linalg.inv(Q), (np.ones((n, 1)) - C))
-		l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
+		try:
+			alpha_est = np.matmul(np.linalg.pinv(Q), (np.ones((n, 1)) - C))
+			l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
+		except:
+			print("gua in init_alpha")
+			f = open("tmp_init.txt", "w")
+			f.write(str(list(Q)))
+			f.close()
+			exit(-1)
 		return np.array(l_alpha_pos).reshape(n, 1)
 
 	def compute_alpha(self, Q, C):
@@ -42,7 +49,7 @@ class LogBarrier(object):
 		count = 0
 		while not converge_cond and count < self.MAX_COUNT:
 			d = self._Newtons_method(Q, alpha, h)
-			selected_d_over_delta_d = [alpha[j] / -d[j] for j in range(n) if d[j] < 0]
+			selected_d_over_delta_d = [alpha[j] / (-d[j] + self.accuracy) for j in range(n) if d[j] < 0]
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
 
 			alpha = alpha + theta * d
@@ -77,8 +84,15 @@ class LogBarrier(object):
 		delta = np.diag(dB[:,0])
 		# print("drtestesras: ",delta.shape)
 		H = Q + 1.0 / n * delta
-		H_inv = np.linalg.inv(H)
-		res = -np.matmul(H_inv, h)
+		try:
+			H_inv = np.linalg.pinv(H)
+			res = -np.matmul(H_inv, h)
+		except:
+			print("gua in newton method")
+			f = open("tmp_newton.txt", "w")
+			f.write(str(list(H)))
+			f.close()
+			exit(-1)
 		return res
 
 
