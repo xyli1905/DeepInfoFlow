@@ -24,7 +24,7 @@ class LogBarrier(object):
 	def _init_alpha(self, Q, C):
 		n = Q.shape[0]
 		try:
-			tmp = np.diag(np.ones(n)*self.accuracy)
+			tmp = np.diag(np.ones(n))
 			alpha_est = np.matmul(np.linalg.inv(Q + tmp), (np.ones((n, 1)) - C))
 			l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
 		except Exception as e:
@@ -50,8 +50,13 @@ class LogBarrier(object):
 
 		# main loop
 		count = 0
+		last_d = np.zeros_like(h)
 		while not converge_cond and count < self.MAX_COUNT:
-			d = self._Newtons_method(Q, alpha, h)
+			indicator, d = self._Newtons_method(Q, alpha, h)
+			if indicator:
+				last_d = d
+			else:
+				d = last_d
 			selected_d_over_delta_d = [alpha[j] / (-d[j] + self.accuracy) for j in range(n) if d[j] < 0]
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
 
@@ -89,7 +94,6 @@ class LogBarrier(object):
 		H = Q + 1.0 / n * delta
 		try:
 			H_inv = np.linalg.pinv(H)
-			print(np.linalg.det(H @ H_inv))
 			res = -np.matmul(H_inv, h)
 		except Exception as e:
 			print("gua in newton method")
@@ -97,8 +101,8 @@ class LogBarrier(object):
 			f = open("tmp_newton.txt", "w")
 			f.write(str(list(H)))
 			f.close()
-			exit(-1)
-		return res
+			return False, np.zeros_like(h)
+		return True, res
 
 	# def _scipy_newton(self, Q, c, alpha):
 	# 	n = Q.shape[0]
