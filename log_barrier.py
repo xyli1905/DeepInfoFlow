@@ -1,4 +1,5 @@
 import numpy as np
+# from scipy import optimize
 import pprint
 import time
 
@@ -22,7 +23,8 @@ class LogBarrier(object):
 
 	def _init_alpha(self, Q, C):
 		n = Q.shape[0]
-		alpha_est = np.matmul(np.linalg.inv(Q), (np.ones((n, 1)) - C))
+		tmp = np.diag(np.ones(n)*self.accuracy)
+		alpha_est = np.matmul(np.linalg.inv(Q + tmp), (np.ones((n, 1)) - C))
 		l_alpha_pos = [alpha_est[j][0] if alpha_est[j][0] > 0 else self.accuracy for j in range(n)]
 		return np.array(l_alpha_pos).reshape(n, 1)
 
@@ -42,6 +44,7 @@ class LogBarrier(object):
 		count = 0
 		while not converge_cond and count < self.MAX_COUNT:
 			d = self._Newtons_method(Q, alpha, h)
+			# d = self._scipy_newton(Q, C, alpha)
 			selected_d_over_delta_d = [alpha[j] / -d[j] for j in range(n) if d[j] < 0]
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
 
@@ -78,9 +81,24 @@ class LogBarrier(object):
 		# print("drtestesras: ",delta.shape)
 		H = Q + 1.0 / n * delta
 		H_inv = np.linalg.inv(H)
+		print(np.linalg.det(H @ H_inv))
 		res = -np.matmul(H_inv, h)
 		return res
 
+	# def _scipy_newton(self, Q, c, alpha):
+	# 	n = Q.shape[0]
+	# 	def f(a):
+	# 		return np.matmul(Q, a) + c - 1.0/(n * a + self.accuracy)
+	# 	def fprime(a):
+	# 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), a)))
+	# 		delta = np.diag(dB[:,0])
+	# 		return Q + 1./n * delta
+	# 	# def fprime2(a):
+	# 	# 	dB = np.array(list(map(lambda x: 1.0 / (x**3 + self.accuracy), a)))
+	# 	# 	delta = np.diag(dB[:,0])
+	# 	# 	return -1./n * delta
+	# 	root = optimize.newton(f, alpha)
+	# 	return root - alpha
 
 
 if __name__ == '__main__':
