@@ -96,16 +96,15 @@ class ComputeMI:
         IX_dic = {}
         IY_dic = {}
 
+        # prepare sample indices
         Nrepeats = 1
         random_indexes = self.random_index((Nrepeats, 500))
 
         print("len dataset : ", len(self._test_set))
         epoch_files = os.listdir(self.path)
         for epoch_file in epoch_files:
-            # random_indexes = self.random_index(4096)
-
+            # initial progress record
             progress += 1
-            # random_sampled_points = {}
 
             self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
             print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)
@@ -143,6 +142,7 @@ class ComputeMI:
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
 
+            # for each layer, compute averaged MI
             X = np.array(X)
             Y = np.array(Y)
 
