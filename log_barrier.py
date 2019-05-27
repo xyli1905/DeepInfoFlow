@@ -33,7 +33,7 @@ class LogBarrier(object):
 			f = open("tmp_init.txt", "w")
 			f.write(str(list(Q)))
 			f.close()
-			return np.ones((n,1)) * 1e-3
+			return np.ones((n,1)) * 1e-3 # avoid numerical error in inv(Q + tmp)
 		return np.array(l_alpha_pos).reshape(n, 1)
 
 	def compute_alpha(self, Q, C):
@@ -42,7 +42,6 @@ class LogBarrier(object):
 		n = Q.shape[0]
 
 		# initialize alpha for iteration
-		# alpha = np.ones((n, 1)) * 10.0 #self.init_alpha(Q, C, self.epsilon)
 		alpha = self._init_alpha(Q, C)
 
 		h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
@@ -50,7 +49,7 @@ class LogBarrier(object):
 
 		# main loop
 		count = 0
-		last_d = np.ones_like(h) * 1e-3
+		last_d = np.ones_like(h) * 1e-3 # avoid svd error in pinv() at first update
 		while not converge_cond and count < self.MAX_COUNT:
 			indicator, d = self._Newtons_method(Q, alpha, h)
 			if indicator:
@@ -64,6 +63,7 @@ class LogBarrier(object):
 			converge_cond = np.linalg.norm(h) <= self.epsilon
 			count += 1
 
+			#Debug outputs
 			# import time
 			# print (np.linalg.norm(theta))
 			# print (np.linalg.norm(d))
@@ -77,8 +77,8 @@ class LogBarrier(object):
 			print("Terminated (maximum number of iterations reached).")
 		if self.PRINT:
 			print("After converge(termination), the val of ||h||_2 and f, i.e. the objective, are:")
-			print("||h||_2 = ", np.linalg.norm(np.matmul(Q, alpha) + C - 1.0/(n * alpha)))
-			print("f = ", 0.5 * alpha.T @ Q @ alpha + C.T @ alpha - np.sum(np.log(alpha))/n)
+			print("\t||h||_2 = ", np.linalg.norm(np.matmul(Q, alpha) + C - 1.0/(n * alpha)))
+			print("\tf = ", 0.5 * alpha.T @ Q @ alpha + C.T @ alpha - np.sum(np.log(alpha))/n)
 
 		return alpha
 
@@ -89,7 +89,6 @@ class LogBarrier(object):
 		n = alpha.shape[0]
 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), alpha)))
 		delta = np.diag(dB[:,0])
-		# print("drtestesras: ",delta.shape)
 		H = Q + 1.0 / n * delta
 		try:
 			H_inv = np.linalg.pinv(H)
@@ -103,27 +102,23 @@ class LogBarrier(object):
 			return False, np.zeros_like(h)
 		return True, res
 
-	# def _scipy_newton(self, Q, c, alpha):
-	# 	n = Q.shape[0]
-	# 	def f(a):
-	# 		return np.matmul(Q, a) + c - 1.0/(n * a + self.accuracy)
-	# 	def fprime(a):
-	# 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), a)))
-	# 		delta = np.diag(dB[:,0])
-	# 		return Q + 1./n * delta
-	# 	# def fprime2(a):
-	# 	# 	dB = np.array(list(map(lambda x: 1.0 / (x**3 + self.accuracy), a)))
-	# 	# 	delta = np.diag(dB[:,0])
-	# 	# 	return -1./n * delta
-	# 	root = optimize.newton(f, alpha)
-	# 	return root - alpha
 
 
 if __name__ == '__main__':
-	dim = 1000
+	dim = 500
 
-	x = np.random.rand(dim, 16)
-	y = np.random.rand(dim, 16)
+	#test samples
+	# x = np.random.rand(dim, 16)
+	# y = np.random.rand(dim, 16)
+	# x = np.random.normal(4., 2., (dim, 1))
+	# y = np.random.normal(0., 1., (dim, 1))
+	# x = np.random.normal(0., 1., (dim, 1))
+	# y = np.random.normal(4., 2., (dim, 1))
+	x = np.random.beta(1., 2., size=(dim, 1))
+	y = np.random.uniform(low=0.0, high=1.0, size=(dim, 1))
+
+	lambdaN = 1./dim
+	sigma = 0.1
 
 	# compute Kyy
 	var = np.zeros((dim, dim))
@@ -131,9 +126,9 @@ if __name__ == '__main__':
 		for j in range(dim):
 			delta = x[i,:] - y[j,:]
 			mu2 = np.dot(delta, delta)
-			var[i,j] = -1.0 * mu2 # sigma == 1
+			var[i,j] = -1.0 * mu2 / sigma
 	Kxy = np.exp(var)
-	c_n = - np.transpose(Kxy) @ np.ones((dim, 1))
+	c_n = - np.transpose(Kxy) @ np.ones((dim, 1)) / (-1.0 * lambdaN * dim)
 	# print(c_n.shape)
 
 	# compute Kyy
@@ -145,12 +140,13 @@ if __name__ == '__main__':
 			var[i,j] = -1.0 * mu2 
 			var[j,i] = var[i,j]
 	Kyy = np.exp(var)
-	Q_n = dim * Kyy
+	Q_n = Kyy / lambdaN
 	# print(np.linalg.det(Q_n))
 
 	t_begin = time.time()
 	l = LogBarrier()
-	l.compute_alpha(Q_n, c_n)
+	alpha = l.compute_alpha(Q_n, c_n)
+	print("\tDhat_kl = ", -np.log(dim) - np.sum(np.log(alpha))/dim)
 	t_end = time.time()
 	print(f"time cost {t_end - t_begin:.5f}(s)")
 
