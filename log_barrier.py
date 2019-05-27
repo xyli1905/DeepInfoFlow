@@ -33,7 +33,7 @@ class LogBarrier(object):
 			f = open("tmp_init.txt", "w")
 			f.write(str(list(Q)))
 			f.close()
-			exit(-1)
+			return np.ones((n,1)) * 1e-3
 		return np.array(l_alpha_pos).reshape(n, 1)
 
 	def compute_alpha(self, Q, C):
@@ -50,7 +50,7 @@ class LogBarrier(object):
 
 		# main loop
 		count = 0
-		last_d = np.zeros_like(h)
+		last_d = np.ones_like(h) * 1e-3
 		while not converge_cond and count < self.MAX_COUNT:
 			indicator, d = self._Newtons_method(Q, alpha, h)
 			if indicator:
@@ -59,7 +59,6 @@ class LogBarrier(object):
 				d = last_d
 			selected_d_over_delta_d = [alpha[j] / (-d[j] + self.accuracy) for j in range(n) if d[j] < 0]
 			theta = min(1.0, r * min(selected_d_over_delta_d)) if selected_d_over_delta_d else 1.0
-
 			alpha = alpha + theta * d
 			h = np.matmul(Q, alpha) + C - 1.0/(n * alpha + self.accuracy)
 			converge_cond = np.linalg.norm(h) <= self.epsilon
