@@ -128,7 +128,7 @@ if __name__ == '__main__':
 			mu2 = np.dot(delta, delta)
 			var[i,j] = -1.0 * mu2 / sigma
 	Kxy = np.exp(var)
-	c_n = - np.transpose(Kxy) @ np.ones((dim, 1)) / (-1.0 * lambdaN * dim)
+	c_n = np.transpose(Kxy) @ np.ones((dim, 1)) / (-1.0 * lambdaN * dim)
 	# print(c_n.shape)
 
 	# compute Kyy
@@ -149,5 +149,3 @@ if __name__ == '__main__':
 	print("\tDhat_kl = ", -np.log(dim) - np.sum(np.log(alpha))/dim)
 	t_end = time.time()
 	print(f"time cost {t_end - t_begin:.5f}(s)")
-
-
