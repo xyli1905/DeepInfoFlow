@@ -15,7 +15,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_test_new_MI_plot_Time_05_27_11_37_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_test_EVKL_Time_05_27_13_19_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -105,7 +105,7 @@ class ComputeMI:
 
             progress += 1
 
-            random_sampled_points = {}
+            # random_sampled_points = {}
 
             self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
             print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)

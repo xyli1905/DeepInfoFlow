@@ -127,14 +127,12 @@ class PlotFigure:
                     for epoch in Lepoch:
                         ax.scatter(MI_X_T[epoch][L], MI_Y_T[epoch][L], s=40, facecolor=sm.to_rgba(epoch))
 
-                    # ax setting
+                    # ax setting (note must set_x(y)lim before self._commom_ax_setting_MI_plane)
                     ax.set_xlim(ax_xrange)
                     ax.set_ylim(ax_yrange)
                     self._commom_ax_setting_MI_plane(ax, layer_idx = L)
 
-            # cbaxes = fig.add_axes([1.0, 0.125, 0.03, 0.8]) #rect = l,b,w,h
-            cbaxes = fig.add_axes([0.7, 0.03, 0.03, 0.285])
-            # fig.colorbar(sm, label='Epoch', fraction=0.0454, pad=0.05, cax=cbaxes)
+            cbaxes = fig.add_axes([0.7, 0.03, 0.03, 0.285]) #rect = l,b,w,h
             fig.colorbar(sm, label='Epoch', cax=cbaxes)
 
             # saving figure
