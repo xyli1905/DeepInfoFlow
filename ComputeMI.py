@@ -15,7 +15,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_IB_net_test_3_Time_05_27_13_44_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_test_EVKL_Time_05_27_13_19_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -69,12 +69,11 @@ class ComputeMI:
         for key in sorted(saved_labelixs.keys()):
             label_probs.append(len(saved_labelixs[key]) / num_samples)
 
-
         return saved_labelixs, label_probs
 
 
     def launch_computeMI_Thread(self):
-            t = threading.Thread(target=self.computeMI)
+            t = threading.Thread(target=self.EVMethod)
             t.start()
 
     def random_index(self, size, max_size=4096):
@@ -97,7 +96,8 @@ class ComputeMI:
         IX_dic = {}
         IY_dic = {}
 
-        random_indexes = self.random_index(500)
+        Nrepeats = 1
+        random_indexes = self.random_index((Nrepeats, 500))
 
         print("len dataset : ", len(self._test_set))
         epoch_files = os.listdir(self.path)
@@ -105,7 +105,6 @@ class ComputeMI:
             # random_indexes = self.random_index(4096)
 
             progress += 1
-
             # random_sampled_points = {}
 
             self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
@@ -149,49 +148,13 @@ class ComputeMI:
 
             IX_epoch = []
             IY_epoch = []
-
             for layer in layer_activity:
                 layer = layer.detach().numpy()
 
-                # random sampling all the data
-                XT_X = X[random_indexes["XT"]] # P(X,T) for X
-                YT_Y = Y[random_indexes["YT"]] # P(Y,T) for Y
-                XT_T = layer[random_indexes["XT"]] # P(X,T) for T
-                YT_T = layer[random_indexes["YT"]] # P(Y,T) for T
-
-
-                X_XT = X[random_indexes["X_XT"]] # P(X)(Y) for X
-                Y_YT = Y[random_indexes["Y_YT"]] # P(Y)(T) for Y
-                T_XT = layer[random_indexes["T_XT"]] # P(X)P(T) for T
-                T_YT = layer[random_indexes["T_YT"]] # P(Y)P(T) for T
-
-                # print("------"*5)
-                # # print(random_indexes["XT"])
-                # # print(" ")
-                # print(repr(random_indexes["X_XT"]))
-                # print(" ")
-                # print(repr(random_indexes["T_XT"]))
-                # print(" ")
-                # print(repr(random_indexes["Y_YT"]))
-                # print(" ")
-                # print(repr(random_indexes["T_YT"]))
-                # print("------"*5)
-
-                # MI for X and T: I(X;T) = Dkl(P(X,T)||P(X)P(T))
-                sample_XT_pair = np.concatenate((XT_X, XT_T), axis = 1)
-                sample_X_and_T = np.concatenate((X_XT, T_XT), axis = 1)
-
-                IX = self.measure.MI_estimator(sample_XT_pair, sample_X_and_T)
-                IX_epoch.append(IX)
-
-                # MI for Y and T: I(Y;T) = Dkl(P(Y,T)||P(Y)P(T))
-                # print(YT_Y.shape)
-                # print(YT_T.shape)
-                sample_YT_pair = np.concatenate((YT_Y, YT_T), axis = 1)
-                sample_Y_and_T = np.concatenate((Y_YT, T_YT), axis = 1)
-
-                IY = self.measure.MI_estimator(sample_YT_pair, sample_Y_and_T)
-                IY_epoch.append(IY)
+                avg_IX, avg_IY = self._compute_averaged_IX_IY(X, Y, layer, random_indexes)
+                
+                IX_epoch.append(avg_IX)
+                IY_epoch.append(avg_IY)
 
             if epoch not in IX_dic.keys() and epoch not in IY_dic.keys():
                 IX_dic[epoch] = IX_epoch
@@ -199,16 +162,59 @@ class ComputeMI:
             else:
                 raise RuntimeError('epoch is duplicated')
 
-
-
         plotter = PlotFigure(self._opt, self.model_name)
         plotter.plot_MI_plane(IX_dic, IY_dic)
         end = time.time()
         print(" ")
         print("total time cost : ", end - start)
 
+    def _compute_averaged_IX_IY(self, X, Y, layer, random_indexes):
+        Nrepeats = random_indexes["XT"].shape[0]
 
-    def computeMI(self):
+        avg_IX = 0.
+        avg_IY = 0.
+        for i in range(Nrepeats):
+            # random sampling all the data
+            XT_X = X[random_indexes["XT"][i]] # P(X,T) for X
+            YT_Y = Y[random_indexes["YT"][i]] # P(Y,T) for Y
+            XT_T = layer[random_indexes["XT"][i]] # P(X,T) for T
+            YT_T = layer[random_indexes["YT"][i]] # P(Y,T) for T
+
+            X_XT = X[random_indexes["X_XT"][i]] # P(X)(Y) for X
+            Y_YT = Y[random_indexes["Y_YT"][i]] # P(Y)(T) for Y
+            T_XT = layer[random_indexes["T_XT"][i]] # P(X)P(T) for T
+            T_YT = layer[random_indexes["T_YT"][i]] # P(Y)P(T) for T
+
+            # print("------"*5)
+            # # print(random_indexes["XT"])
+            # # print(" ")
+            # print(repr(random_indexes["X_XT"]))
+            # print(" ")
+            # print(repr(random_indexes["T_XT"]))
+            # print(" ")
+            # print(repr(random_indexes["Y_YT"]))
+            # print(" ")
+            # print(repr(random_indexes["T_YT"]))
+            # print("------"*5)
+
+            # MI for X and T: I(X;T) = Dkl(P(X,T)||P(X)P(T))
+            sample_XT_pair = np.concatenate((XT_X, XT_T), axis = 1)
+            sample_X_and_T = np.concatenate((X_XT, T_XT), axis = 1)
+
+            IX = self.measure.MI_estimator(sample_XT_pair, sample_X_and_T)
+            avg_IX += IX
+
+            # MI for Y and T: I(Y;T) = Dkl(P(Y,T)||P(Y)P(T))
+            sample_YT_pair = np.concatenate((YT_Y, YT_T), axis = 1)
+            sample_Y_and_T = np.concatenate((Y_YT, T_YT), axis = 1)
+
+            IY = self.measure.MI_estimator(sample_YT_pair, sample_Y_and_T)
+            avg_IY += IY
+
+        return avg_IX / Nrepeats, avg_IY / Nrepeats
+
+
+    def kdeMethod(self):
         saved_labelixs, label_probs = self.get_saved_labelixs_and_labelprobs()
 
         epoch_files = os.listdir(self.path)
@@ -300,7 +306,7 @@ class ComputeMI:
 
 if __name__ == "__main__":
     t = ComputeMI()
-    # t.computeMI()
+    # t.kdeMethod()
     t.EVMethod()
 
     # a = np.array([1883, 2775, 2152, 1959, 1411,  552, 3765,  899,  903, 3711, 3298,
