@@ -110,7 +110,9 @@ venv.bak/
 *#
 .vscode/
 .DS_Store
+*.prof
 rawdata/
 results/
 datasets/
 plots/
+tests/
