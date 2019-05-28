@@ -1,13 +1,17 @@
-# Code for On the Information Bottleneck Theory of Deep Learning
+# Repo for CMPS218 Spring 19 project Deep Information flow
+This repo is for UCSC CMPS218 Foundation of data science project.<br/>
+Our code is composed mainly by two parts IBNet.py and ComputeMI.py.<br/>
+IBNet.py is responsible for training and plotting mean_std plot and SVD plots.<br/>
+ComputeMI.py is responsible for estimating mutual information(MI).<br/>
+Our training data is coming from [ibsgd](https://github.com/artemyk/ibsgd) project. And we also reproduce the results from their project. This project is still ongoing. Detailed description will come later.
 
-* `MNIST_SaveActivations.ipynb` is a jupyter notebook that trains on MNIST and saves (in a data directory) activations when run on test set inputs (as well as weight norms, &c.) for each epoch.
+### Prerequisite
 
-* `MNIST_ComputeMI.ipynb` is a jupyter notebook that loads the data files, computes MI values, and does the infoplane plots and SNR plots for data created using `MNIST_SaveActivations.ipynb`.
-
-* `IBnet_SaveActivations.ipynb` is a jupyter notebook that recreates the network and data from https://github.com/ravidziv/IDNNs and saves activations, weight norms, &c. for each epoch for a single trial.
-
-* `IBnet_ComputeMI.ipynb` is a jupyter notebook that loads the data files created by `IBnet_SaveActivations.ipynb`, computes MI values, and does the infoplane plots and SNR plots. Note, for the full results of the paper, MI values and SNR was averaged for 50 distinct trials; MI and SNR for individual runs can vary substantially.
-
-* `demo.py` is a simple script showing how to compute MI between X and Y, where Y = f(X) + Noise.
-
-Andrew Michael Saxe, Yamini Bansal, Joel Dapello, Madhu Advani, Artemy Kolchinsky, Brendan Daniel Tracey, David Daniel Cox, On the Information Bottleneck Theory of Deep Learning, *ICLR 2018*.
+```
+numpy
+matplotlib
+pytorch
+torchvision
+pathlib2
+seaborn
+```
