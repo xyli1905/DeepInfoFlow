@@ -3,6 +3,7 @@ import pprint
 from plot_utils import PlotFigure
 import numpy as np 
 import pickle
+import os
 
 class Logger(object):
     def __init__(self, opt, plot_name):
@@ -202,8 +203,24 @@ class Logger(object):
         if mean_and_std:
             epoch_mean, epoch_std = self.get_mean_std()
             self.plotter.plot_mean_std(self.recorded_epochs, epoch_mean, epoch_std)
+            #save plot data
+            self._save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
+            self._save_plot_data("mean_data.pkl", epoch_mean)
+            self._save_plot_data("std_data.pkl", epoch_std)
         if svd:
             self.plotter.plot_svd(self.recorded_epochs, self.svds)
+            #save plot data
+            if not mean_and_std:
+                self._save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
+            self._save_plot_data("svds_data.pkl", self.svds)
+    
+    def _save_plot_data(self, fname, data):
+        save_root = "./saved_plot_data"
+        save_path = os.path.join(save_root, fname)
+        if not os.path.exists(save_root):
+            os.mkdir(save_root)
+        with open(save_path, "wb") as f:
+            pickle.dump(data, f)
 
 
     def __str__(self):

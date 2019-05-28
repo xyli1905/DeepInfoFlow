@@ -9,13 +9,14 @@ import time
 from plot_utils import PlotFigure
 import sys
 import threading
+import pickle
 
 class ComputeMI:
     def __init__(self):
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_test_EVKL_Time_05_27_13_19_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_test_save_Time_05_27_19_41_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -164,6 +165,9 @@ class ComputeMI:
 
         plotter = PlotFigure(self._opt, self.model_name)
         plotter.plot_MI_plane(IX_dic, IY_dic)
+        #save plot data
+        self._save_plot_data("IX_dic_data.pkl", IX_dic)
+        self._save_plot_data("IY_dic_data.pkl", IY_dic)
         end = time.time()
         print(" ")
         print("total time cost : ", end - start)
@@ -175,12 +179,12 @@ class ComputeMI:
         avg_IY = 0.
         for i in range(Nrepeats):
             # random sampling all the data
-            XT_X = X[random_indexes["XT"][i]] # P(X,T) for X
+            XT_X = X[random_indexes["XT"][i]][:,0:2] # P(X,T) for X
             YT_Y = Y[random_indexes["YT"][i]] # P(Y,T) for Y
             XT_T = layer[random_indexes["XT"][i]] # P(X,T) for T
             YT_T = layer[random_indexes["YT"][i]] # P(Y,T) for T
 
-            X_XT = X[random_indexes["X_XT"][i]] # P(X)(Y) for X
+            X_XT = X[random_indexes["X_XT"][i]][:,0:2] # P(X)(Y) for X
             Y_YT = Y[random_indexes["Y_YT"][i]] # P(Y)(T) for Y
             T_XT = layer[random_indexes["T_XT"][i]] # P(X)P(T) for T
             T_YT = layer[random_indexes["T_YT"][i]] # P(Y)P(T) for T
@@ -291,9 +295,20 @@ class ComputeMI:
 
         plotter = PlotFigure(self._opt, self.model_name)
         plotter.plot_MI_plane(IX, IY)
+        #save plot data
+        self._save_plot_data("IX_dic_data.pkl", IX)
+        self._save_plot_data("IY_dic_data.pkl", IY)
         end = time.time()
         print(" ")
         print("total time cost : ", end - start)
+
+    def _save_plot_data(self, fname, data):
+        save_root = "./saved_plot_data"
+        if not os.path.exists(save_root):
+            os.mkdir(save_root)
+        save_path = os.path.join(save_root, fname)
+        with open(save_path, "wb") as f:
+            pickle.dump(data, f)
 
 
     def needLog(self, epoch):
