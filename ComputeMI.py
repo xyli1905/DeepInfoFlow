@@ -179,12 +179,12 @@ class ComputeMI:
         avg_IY = 0.
         for i in range(Nrepeats):
             # random sampling all the data
-            XT_X = X[random_indexes["XT"][i]][:,0:2] # P(X,T) for X
+            XT_X = X[random_indexes["XT"][i]] # P(X,T) for X
             YT_Y = Y[random_indexes["YT"][i]] # P(Y,T) for Y
             XT_T = layer[random_indexes["XT"][i]] # P(X,T) for T
             YT_T = layer[random_indexes["YT"][i]] # P(Y,T) for T
 
-            X_XT = X[random_indexes["X_XT"][i]][:,0:2] # P(X)(Y) for X
+            X_XT = X[random_indexes["X_XT"][i]] # P(X)(Y) for X
             Y_YT = Y[random_indexes["Y_YT"][i]] # P(Y)(T) for Y
             T_XT = layer[random_indexes["T_XT"][i]] # P(X)P(T) for T
             T_YT = layer[random_indexes["T_YT"][i]] # P(Y)P(T) for T
