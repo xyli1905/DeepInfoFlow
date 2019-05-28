@@ -8,8 +8,10 @@ Our training data is coming from [ibsgd](https://github.com/artemyk/ibsgd) proje
 ### Prerequisite
 
 ```
-Pytorch
-Matplotlib
-seaborn
 numpy
+matplotlib
+pytorch
+torchvision
+pathlib2
+seaborn
 ```
