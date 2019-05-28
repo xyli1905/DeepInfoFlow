@@ -108,8 +108,8 @@ class PlotFigure:
             ax_xrange = ax_.get_xlim()
             ax_yrange = ax_.get_ylim()
 
-            fig = plt.figure(figsize=(20,20), constrained_layout=True)
-            gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.0, hspace=0.0)
+            fig = plt.figure(figsize=(20,18), constrained_layout=False)
+            gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.15, hspace=0.25)
 
             # plotting
             L = -1
@@ -132,7 +132,8 @@ class PlotFigure:
                     ax.set_ylim(ax_yrange)
                     self._commom_ax_setting_MI_plane(ax, layer_idx = L)
 
-            cbaxes = fig.add_axes([0.7, 0.03, 0.03, 0.285]) #rect = l,b,w,h
+            fig.subplots_adjust(left = 0.05, bottom=0.05, top=0.95, right=0.9)
+            cbaxes = fig.add_axes([0.9, 0.05, 0.03, 0.9]) #rect = l,b,w,h
             fig.colorbar(sm, label='Epoch', cax=cbaxes)
 
             # saving figure
@@ -143,9 +144,9 @@ class PlotFigure:
         csfont = {'fontname':'Times New Roman'}
 
         if layer_idx == -1:
-            ax.set_title('Information Plane', fontsize = 26, y=1.04, **csfont)
+            ax.set_title('Information Plane'+" ("+self._opt.activation+")", fontsize = 26, y=1.04, **csfont)
         else:
-            ax.set_title('Information Plane (layer'+str(layer_idx+1)+")", fontsize = 26, **csfont)
+            ax.set_title('Information Plane (layer'+str(layer_idx+1)+" "+self._opt.activation+")", fontsize = 26, **csfont)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize = 22)
         ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize = 22)
         ax.set_aspect(1. / ax.get_data_ratio())

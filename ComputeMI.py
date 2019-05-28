@@ -16,7 +16,7 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_test_save_Time_05_27_19_41_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_test_save_Time_05_27_20_09_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -98,8 +98,8 @@ class ComputeMI:
         IY_dic = {}
 
         # prepare sample indices
-        Nrepeats = 1
-        random_indexes = self.random_index((Nrepeats, 500))
+        Nrepeats = 10
+        random_indexes = self.random_index((Nrepeats, 400))
 
         print("len dataset : ", len(self._test_set))
         epoch_files = os.listdir(self.path)
