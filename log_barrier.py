@@ -90,6 +90,7 @@ class LogBarrier(object):
 		dB = np.array(list(map(lambda x: 1.0 / (x**2 + self.accuracy), alpha)))
 		delta = np.diag(dB[:,0])
 		H = Q + 1.0 / n * delta
+		H = np.nan_to_num(H) #avoid +-inf, making pinv more stable
 		try:
 			H_inv = np.linalg.pinv(H)
 			res = -np.matmul(H_inv, h)
