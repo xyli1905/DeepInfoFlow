@@ -163,11 +163,12 @@ class ComputeMI:
             else:
                 raise RuntimeError('epoch is duplicated')
 
-        plotter = PlotFigure(self._opt, self.model_name)
-        plotter.plot_MI_plane(IX_dic, IY_dic)
         #save plot data
         self._save_plot_data("IX_dic_data.pkl", IX_dic)
         self._save_plot_data("IY_dic_data.pkl", IY_dic)
+        
+        plotter = PlotFigure(self._opt, self.model_name)
+        plotter.plot_MI_plane(IX_dic, IY_dic)
         end = time.time()
         print(" ")
         print("total time cost : ", end - start)

@@ -75,7 +75,8 @@ class PlotFigure:
         plot evolution of mutual information for each layer at different eporchs
         MI_X_T & MI_Y_T: dictionary, key -> #epoch, value -> List of len Nlayers 
         '''
-        Nlayers = len(MI_X_T[0])
+        idx = list(MI_X_T.keys())[0] # fix bug when only cal. for only part of the epochs
+        Nlayers = len(MI_X_T[idx])
         Lepoch = MI_X_T.keys()
 
         # set colormap
