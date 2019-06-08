@@ -3,4 +3,3 @@ matplotlib
 pytorch
 torchvision
 pathlib2
-seaborn
