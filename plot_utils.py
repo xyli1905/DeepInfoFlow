@@ -143,8 +143,6 @@ class PlotFigure:
             self._save_fig(fig, 'InfoPlan')
 
     def _commom_ax_setting_MI_plane(self, ax, layer_idx = -1):
-        # # set font
-        # csfont = {'fontname':'Times New Roman'}
         if layer_idx == -1:
             ax.set_title('Information Plane'+" ("+self._opt.activation+")", fontsize = 20, y=1.04)
         else:
@@ -257,8 +255,6 @@ class PlotFigure:
         self._save_fig(fig, 'Mean_and_STD')
     
     def _commom_ax_setting_mean_std(self, ax, title_name, show_xlabel=True, show_ylabel=True):
-        # # set font
-        # csfont = {'fontname':'Times New Roman'}
         ax.set_title(title_name+" ("+self._opt.activation+")", fontsize=17)
         if show_xlabel:
             ax.set_xlabel('number of epochs', fontsize=19)
@@ -279,7 +275,6 @@ class PlotFigure:
         '''
         self._func_plot_svd(Lepoch, np.array(svd[0]), "_original")
         self._func_plot_svd(Lepoch, np.array(svd[1]), "_normalized")
-
 
     def _func_plot_svd(self, Lepoch, weight_svd, nameflag):
         '''
@@ -337,6 +332,10 @@ class PlotFigure:
 
         # set dir for mean_std; saving figure
         self._save_fig(fig, 'SingularValues'+nameflag)
+
+    
+    def plot_acc_loss(self):
+        pass
 
 
     def _save_fig(self, fig, fig_name):

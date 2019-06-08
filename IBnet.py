@@ -1,14 +1,6 @@
-from __future__ import print_function
-import numpy as np
-import sys
-import os, pickle
-from collections import defaultdict, OrderedDict
 
-# import simplebinmi
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import seaborn as sns
-sns.set_style('darkgrid')
+import numpy as np
+import os
 
 import torch
 import torch.nn as nn
@@ -19,8 +11,8 @@ from base_options import BaseOption
 from json_parser import JsonParser
 from logger import *
 import utils
-import datetime
 
+import datetime
 import time
 
 
@@ -80,8 +72,8 @@ class SaveActivations:
         self._model = Model(activation = self._opt.activation, dims = dims, train=True)
         self._model.apply(weights_init)
         # optimizer
-        # self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
-        self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
+        self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)
+        # self._optimizer = optim.SGD(self._model.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
         # loss
         self._criterion = nn.CrossEntropyLoss() # loss
 

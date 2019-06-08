@@ -63,7 +63,7 @@ class Distributed(object):
 
 		return individual_work_ranges
 
-	def conbine_results(self):
+	def combine_results(self):
 		pass
 
 

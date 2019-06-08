@@ -1,5 +1,3 @@
-#import keras
-#import keras.backend as K
 import numpy as np
 import scipy.io as sio
 from pathlib2 import Path

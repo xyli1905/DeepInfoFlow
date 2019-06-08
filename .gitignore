@@ -117,5 +117,6 @@ datasets/
 plots/
 backup/
 tests/
+saved_plot_data/
 tmp_init.txt
 tmp_newton.txt
