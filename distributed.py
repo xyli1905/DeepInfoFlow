@@ -63,6 +63,9 @@ class Distributed(object):
 
 		return individual_work_ranges
 
+	def conbine_results(self):
+		pass
+
 
 if __name__ == '__main__':
 	d = Distributed(_num_of_worker=3, _max_epoch=4000)
