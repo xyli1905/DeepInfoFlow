@@ -60,6 +60,13 @@ class Model(nn.Module):
                     self.A.append(nn.LeakyReLU())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
+        elif name == 'sigmoid':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.Sigmoid())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
         else:
             raise RuntimeError('Do not have {activation} activation function please check your options'.format(activation = name))
 

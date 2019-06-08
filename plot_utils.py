@@ -109,8 +109,10 @@ class PlotFigure:
             ax_xrange = ax_.get_xlim()
             ax_yrange = ax_.get_ylim()
 
-            fig = plt.figure(figsize=(20,18), constrained_layout=False)
-            gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.15, hspace=0.25)
+            # auto adapted to number of layers
+            nrow = int(np.ceil(Nlayers/3))
+            fig = plt.figure(figsize=(20,6*nrow), constrained_layout=False)
+            gs = GridSpec(nrow, 3, figure=fig, wspace=0.15, hspace=0.25)
 
             # plotting
             L = -1
@@ -134,20 +136,19 @@ class PlotFigure:
                     self._commom_ax_setting_MI_plane(ax, layer_idx = L)
 
             fig.subplots_adjust(left = 0.05, bottom=0.05, top=0.95, right=0.9)
-            cbaxes = fig.add_axes([0.9, 0.05, 0.03, 0.9]) #rect = l,b,w,h
+            cbaxes = fig.add_axes([0.91, 0.05, 0.03, 0.9]) #rect = l,b,w,h
             fig.colorbar(sm, label='Epoch', cax=cbaxes)
 
             # saving figure
             self._save_fig(fig, 'InfoPlan')
 
     def _commom_ax_setting_MI_plane(self, ax, layer_idx = -1):
-        # set font
-        csfont = {'fontname':'Times New Roman'}
-
+        # # set font
+        # csfont = {'fontname':'Times New Roman'}
         if layer_idx == -1:
-            ax.set_title('Information Plane'+" ("+self._opt.activation+")", fontsize = 26, y=1.04, **csfont)
+            ax.set_title('Information Plane'+" ("+self._opt.activation+")", fontsize = 20, y=1.04)
         else:
-            ax.set_title('Information Plane (layer'+str(layer_idx+1)+" "+self._opt.activation+")", fontsize = 26, **csfont)
+            ax.set_title('Information Plane (layer'+str(layer_idx+1)+" "+self._opt.activation+")", fontsize = 20)
         ax.set_xlabel('$\mathcal{I}(X;T)$', fontsize = 22)
         ax.set_ylabel('$\mathcal{I}(Y;T)$', fontsize = 22)
         ax.set_aspect(1. / ax.get_data_ratio())
@@ -256,14 +257,13 @@ class PlotFigure:
         self._save_fig(fig, 'Mean_and_STD')
     
     def _commom_ax_setting_mean_std(self, ax, title_name, show_xlabel=True, show_ylabel=True):
-        # set font
-        csfont = {'fontname':'Times New Roman'}
-
-        ax.set_title(title_name+" ("+self._opt.activation+")", fontsize=20, **csfont)
+        # # set font
+        # csfont = {'fontname':'Times New Roman'}
+        ax.set_title(title_name+" ("+self._opt.activation+")", fontsize=17)
         if show_xlabel:
-            ax.set_xlabel('number of epochs', fontsize=22, **csfont)
+            ax.set_xlabel('number of epochs', fontsize=19)
         if show_ylabel:
-            ax.set_ylabel('Means and Standard Deviations', fontsize=22, **csfont)
+            ax.set_ylabel('Means and Standard Deviations', fontsize=19)
 
         ax.set_xscale('log')
         ax.set_yscale('log')
@@ -290,13 +290,14 @@ class PlotFigure:
         '''
         Nlayers = len(weight_svd[0])
 
-        fig = plt.figure(figsize=(25,20), constrained_layout=True)
-        gs = GridSpec(3, int(Nlayers/3) + 1, figure=fig, wspace=0.0, hspace=0.0)
+        nrow = int(np.ceil(Nlayers/3))
+        fig = plt.figure(figsize=(23,6*nrow), constrained_layout=True)
+        gs = GridSpec(nrow, 3, figure=fig, wspace=0.0, hspace=0.0)
 
         # set color and font
         colors = ['b', 'r', 'g', 'c', 'm', 'y', 'orange', 'darkgreen']
         cy = cycler('color', colors)
-        csfont = {'fontname':'Times New Roman'}
+        # csfont = {'fontname':'Times New Roman'}
 
         # initialize legend settting
         # legend_svd_w = []
@@ -319,13 +320,13 @@ class PlotFigure:
     
                 # ax settings
                 ax.set_prop_cycle(cy)
-                ax.set_title('layer'+str(L+1)+' ('+self._opt.activation+')', fontsize=20, **csfont)
+                ax.set_title('layer'+str(L+1)+' ('+self._opt.activation+')', fontsize=17)
                 ax.set_xscale('log')
                 ax.set_ylim(bottom = 0.)
-                if i == 2:
-                    ax.set_xlabel('number of epochs', fontsize = 22, **csfont)
+                if i == nrow - 1:
+                    ax.set_xlabel('number of epochs', fontsize = 19)
                 if j == 0:
-                    ax.set_ylabel('Singular Values', fontsize = 22, **csfont)
+                    ax.set_ylabel('Singular Values', fontsize = 19)
                 ax.set_facecolor('#edf0f8')
                 ax.grid(color='w', linestyle='-.', linewidth = 1)
                 ax.tick_params(labelsize = 13)
@@ -339,16 +340,19 @@ class PlotFigure:
 
 
     def _save_fig(self, fig, fig_name):
+        '''
+        we use pdf rather then eps since eps in matplotlib doesn't support transparency
+        '''
         # save in model_path
-        fig_name_eps = os.path.join(self.model_path, "{}.eps".format(fig_name))
-        fig.savefig(fig_name_eps, format='eps')
+        fig_name_eps = os.path.join(self.model_path, "{}.pdf".format(fig_name))
+        fig.savefig(fig_name_eps, format='pdf')
 
         fig_name_jpg = os.path.join(self.model_path, "{}.jpg".format(fig_name))
         fig.savefig(fig_name_jpg, format='jpeg')
 
         # save in plot_root
-        fig_name_eps = os.path.join(self.plot_dir, "{}_{}.eps".format(fig_name, self.model_name))
-        fig.savefig(fig_name_eps, format='eps')
+        fig_name_eps = os.path.join(self.plot_dir, "{}_{}.pdf".format(fig_name, self.model_name))
+        fig.savefig(fig_name_eps, format='pdf')
 
         fig_name_jpg = os.path.join(self.plot_dir, "{}_{}.jpg".format(fig_name, self.model_name))
         fig.savefig(fig_name_jpg, format='jpeg')
