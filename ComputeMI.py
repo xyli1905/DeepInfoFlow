@@ -12,11 +12,11 @@ import threading
 import pickle
 
 class ComputeMI:
-    def __init__(self):
+    def __init__(self, measure_type = 'EVKL'):
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
-        self.model_name = 'IBNet_test_save_Time_05_27_20_09_Model_12_12_10_7_5_4_3_2_2_'
+        self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
         self.path =os.path.join('./results', self.model_name)# info plane dir
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -51,8 +51,17 @@ class ComputeMI:
         self._model = Model(activation = self._opt.activation ,dims = self._opt.layer_dims, train = False)
         
         # get measure
-        # self.measure = measure.kde()
-        self.measure = measure.EVKL() # our new measure
+        self.measure_type = measure_type
+        if measure_type == 'EVKL':
+            self.measure = measure.EVKL() # our new measure
+        elif measure_type == 'kde':
+            self.measure = measure.kde()
+
+    def eval(self):
+        if self.measure_type == 'EVKL':
+            self.EVMethod()
+        elif self.measure_type == 'kde':
+            self.kdeMethod()
 
 
     def get_saved_labelixs_and_labelprobs(self):
@@ -98,8 +107,8 @@ class ComputeMI:
         IY_dic = {}
 
         # prepare sample indices
-        Nrepeats = 10
-        random_indexes = self.random_index((Nrepeats, 400))
+        Nrepeats = 1
+        random_indexes = self.random_index((Nrepeats, 1000))
 
         print("len dataset : ", len(self._test_set))
         epoch_files = os.listdir(self.path)
@@ -321,9 +330,10 @@ class ComputeMI:
 
 
 if __name__ == "__main__":
-    t = ComputeMI()
-    # t.kdeMethod()
-    t.EVMethod()
+
+    measure_type = 'EVKL'
+    t = ComputeMI(measure_type=measure_type)
+    t.eval()
 
     # a = np.array([1883, 2775, 2152, 1959, 1411,  552, 3765,  899,  903, 3711, 3298,
     #    2801,  154,  101, 2656, 2468,  525, 2159, 1857, 1434, 1726, 4094,
