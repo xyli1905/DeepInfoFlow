@@ -19,9 +19,8 @@ class ComputeMI:
         # self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
         self.model_name, self.path = self._find_newest_model('./results') # auto-find the newest model
         # self.path =os.path.join('./results', self.model_name)# info plane dir
-        print(self.model_name)
-        print(self.path)
-        exit -1
+        # print(self.model_name)
+        # print(self.path)
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
