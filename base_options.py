@@ -12,16 +12,16 @@ class BaseOption:
 
         # Arguments For IBnet Begin
         self._parser.add_argument('--batch_size', type=int, default=512, help='number of data points in one batch')
-        self._parser.add_argument('--experiment_name', type=str, default='kde_adam', help='a unique name for experiment')
+        self._parser.add_argument('--experiment_name', type=str, default='relu_6layer_6000', help='a unique name for experiment')
         self._parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=4000, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=6000, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
         self._parser.add_argument('--layer_dims', type=list, default=[12, 10, 7, 5, 4, 3, 2], help='dimention of each layer')
 
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
-        self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
+        self._parser.add_argument('--activation', type=str, default='relu', help='activation method')
         self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
 
