@@ -21,7 +21,7 @@ class kde:
         dims = x.size()[1]
         N    = x.size()[0]
         return dims, N
-    
+
     def entropy_estimator_kl(self, x, var):
         '''
         KL-based upper bound on entropy of mixture of Gaussians with covariance matrix var * I 
@@ -73,15 +73,15 @@ class EVKL:
 
         l = LogBarrier()
         alpha = l.compute_alpha(Q, c)
-        
+
         Dkl_hat = self._estimate_KL_div(alpha)
 
         return Dkl_hat
 
     def _prepare_Q_c(self, x, y):
         '''
-        Compute: 
-            first, Kyy := K(yi,yj) and 
+        Compute:
+            first, Kyy := K(yi,yj) and
                    Kxy := K(xi, yj);
             then Q = 1/lambdaN * Kyy, and
                  c = - 1/(n*lambdaN) * Kxy^T @ ones
@@ -107,7 +107,7 @@ class EVKL:
                 mu2 = np.dot(delta, delta)
                 var[i,j] = -1.0 * mu2 / sigma
         Kxy = np.exp(var)
-        
+
         # compute Kyy
         var = np.zeros((Nsamples, Nsamples))
         for i in range(Nsamples):
@@ -121,11 +121,11 @@ class EVKL:
         Q = Kyy / lambdaN
         c = np.transpose(Kxy) @ np.ones((Nsamples, 1)) / (-1.0 * lambdaN * Nsamples)
 
-        return Q, c 
-    
+        return Q, c
+
     def _estimate_KL_div(self, alpha):
         '''
-        based on the formular of 
+        based on the formular of
             Estimating divergence functional and the likelihood ratio by penalized
             convex risk minimization, XuanLong Nguyen, et al (2010)
         '''
