@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
+from ReLUX import ReLUX
 
 class Model(nn.Module):
     def __init__(self, activation , dims, train = True):
@@ -67,6 +68,20 @@ class Model(nn.Module):
                     self.A.append(nn.Sigmoid())
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
+        elif name == 'softplus':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(nn.Softplus())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        elif name == 'relux':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(ReLUX())
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
         else:
             raise RuntimeError('Do not have {activation} activation function please check your options'.format(activation = name))
 
@@ -97,14 +112,13 @@ class Model(nn.Module):
 
 
 if __name__ == '__main__':
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
+    device = torch.device("cpu" if torch.cuda.is_available() else "cpu") # device setup
     print(device)
-    model = Model()
+    model = Model(activation = "relux", dims = [12,6,2])
     print (model)
-    model.apply(weights_init)
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    
+
     #example forward
     dummy_x = torch.randn(5, 12) #feature
     dummy_y = torch.randint(0,1,(5,2)) #label
