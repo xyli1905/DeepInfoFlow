@@ -112,7 +112,7 @@ class Model(nn.Module):
 
 
 if __name__ == '__main__':
-    device = torch.device("cpu" if torch.cuda.is_available() else "cpu") # device setup
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
     print(device)
     model = Model(activation = "relux", dims = [12,6,2])
     print (model)
