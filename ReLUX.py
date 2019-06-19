@@ -4,8 +4,16 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 class ReLUX(nn.Module):
-    def __init__(self, minVal = 0.0, maxVal = None, slope = 1.0, bias = 0.0):
+    def __init__(self,leftPoint = None, rightPoint = None):
         super(ReLUX, self).__init__()
+
+        '''
+        params:
+        leftPoint: [x, y] coordinates of left bent point
+        rightPoint: [x, y] coordinates of right bent point
+        '''
+
+        minVal, maxVal, slope, bias = self.getParameter(leftPoint = leftPoint, rightPoint = rightPoint)
 
         tensorMinVal = torch.tensor(minVal, dtype = torch.float) if minVal != None else torch.tensor(-float("inf"), dtype = torch.float)
         tensorMaxVal = torch.tensor(maxVal, dtype = torch.float) if maxVal != None else torch.tensor(float("inf"), dtype = torch.float)
@@ -26,8 +34,22 @@ class ReLUX(nn.Module):
         x = torch.min(torch.max(x * self.slope, self.minVal), self.maxVal) + self.bias
         return x
 
+    def getParameter(self, leftPoint, rightPoint):
+        if leftPoint == None and rightPoint == None:
+            return None, None, 1.0, 0.0
+        elif leftPoint == None and rightPoint != None:
+            return leftPoint[0], None, 1, leftPoint[1]
+        elif leftPoint != None and rightPoint == None:
+            return None, rightPoint[0], 1, rightPoint[1]
+        else:
+            slope = float((rightPoint[1] - leftPoint[1]) / (rightPoint[0] - leftPoint[0])) #dY/dX
+            bias = float(min(leftPoint[1], rightPoint[1]))
+            minVal = float(leftPoint[1])
+            maxVal = float(rightPoint[1])
+            return minVal, maxVal, slope, bias
+
 
 if __name__ == "__main__":
-    my_net = nn.Sequential(ReLUX())
-    y = my_net(Variable(torch.tensor(-1.5)))
+    my_net = nn.Sequential(ReLUX(leftPoint = [0, 0], rightPoint = [1, 2]))
+    y = my_net(Variable(torch.tensor(1.5)))
     print(y)
