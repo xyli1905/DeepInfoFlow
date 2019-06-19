@@ -31,7 +31,7 @@ class ReLUX(nn.Module):
         self.shift.requires_grad = False
 
     def forward(self, x):
-        x = torch.min(torch.max(x * self.slope, self.minVal), self.maxVal) + self.shift
+        x = torch.min(torch.max(x * self.slope + self.shift, self.minVal), self.maxVal)
         return x
 
     def getParameter(self, leftPoint, rightPoint):
@@ -43,13 +43,17 @@ class ReLUX(nn.Module):
             return leftPoint[0], None, 1, leftPoint[1]
         else:
             slope = float((rightPoint[1] - leftPoint[1]) / (rightPoint[0] - leftPoint[0])) #dY/dX
-            bias = float(min(leftPoint[1], rightPoint[1]))
+            bias = float(0.5 * ((leftPoint[1] + rightPoint[1]) - (leftPoint[0] + rightPoint[0]) * slope))
             minVal = float(leftPoint[1])
             maxVal = float(rightPoint[1])
             return minVal, maxVal, slope, bias
 
 
 if __name__ == "__main__":
-    my_net = nn.Sequential(ReLUX(leftPoint = None, rightPoint = [0, 0]))
-    y = my_net(Variable(torch.tensor(-2.5)))
+    my_net = nn.Sequential(ReLUX(leftPoint = [-2,-2], rightPoint = [0,0]))
+    x = torch.arange(-3, 3, 0.1)
+    y = my_net(Variable(x))
+    import matplotlib.pyplot as plt 
     print(y)
+    plt.plot(x.numpy() , y.numpy())
+    plt.show()
