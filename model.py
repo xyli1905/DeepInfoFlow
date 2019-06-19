@@ -79,7 +79,7 @@ class Model(nn.Module):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append(ReLUX())
+                    self.A.append(ReLUX(leftPoint = [0, 0], rightPoint = None))
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:

@@ -23,24 +23,24 @@ class ReLUX(nn.Module):
         self.minVal = torch.nn.Parameter(tensorMinVal)
         self.maxVal = torch.nn.Parameter(tensorMaxVal)
         self.slope = torch.nn.Parameter(tensorSlope)
-        self.bias = torch.nn.Parameter(tensorBias)
+        self.shift = torch.nn.Parameter(tensorBias) # do not change the name to self.bias this is the same as bias
 
         self.minVal.requires_grad = False
         self.maxVal.requires_grad = False
         self.slope.requires_grad = False
-        self.bias.requires_grad = False
+        self.shift.requires_grad = False
 
     def forward(self, x):
-        x = torch.min(torch.max(x * self.slope, self.minVal), self.maxVal) + self.bias
+        x = torch.min(torch.max(x * self.slope, self.minVal), self.maxVal) + self.shift
         return x
 
     def getParameter(self, leftPoint, rightPoint):
         if leftPoint == None and rightPoint == None:
             return None, None, 1.0, 0.0
         elif leftPoint == None and rightPoint != None:
-            return leftPoint[0], None, 1, leftPoint[1]
-        elif leftPoint != None and rightPoint == None:
             return None, rightPoint[0], 1, rightPoint[1]
+        elif leftPoint != None and rightPoint == None:
+            return leftPoint[0], None, 1, leftPoint[1]
         else:
             slope = float((rightPoint[1] - leftPoint[1]) / (rightPoint[0] - leftPoint[0])) #dY/dX
             bias = float(min(leftPoint[1], rightPoint[1]))
@@ -50,6 +50,6 @@ class ReLUX(nn.Module):
 
 
 if __name__ == "__main__":
-    my_net = nn.Sequential(ReLUX(leftPoint = [0, 0], rightPoint = [1, 2]))
-    y = my_net(Variable(torch.tensor(1.5)))
+    my_net = nn.Sequential(ReLUX(leftPoint = None, rightPoint = [0, 0]))
+    y = my_net(Variable(torch.tensor(-2.5)))
     print(y)

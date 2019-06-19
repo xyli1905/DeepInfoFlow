@@ -103,26 +103,28 @@ class Logger(object):
     def log(self, model):
         if len(self.weight_grad) == 0 and len(self.weight_value) == 0 and len(self.bias_grad) == 0 and len(self.bias_value) == 0:
             for name, param in model.named_parameters():
-                grad = param.grad.clone().detach().unsqueeze(0)
-                data = param.data.clone().detach().unsqueeze(0)
-                if name.endswith('weight'):
-                    self.weight_grad.append(grad)
-                    self.weight_value.append(data)
-                if name.endswith('bias'):
-                    self.bias_grad.append(grad)
-                    self.bias_value.append(data)
+                if name.endswith(("bias", "weight")):
+                    grad = param.grad.clone().detach().unsqueeze(0)
+                    data = param.data.clone().detach().unsqueeze(0)
+                    if name.endswith('weight'):
+                        self.weight_grad.append(grad)
+                        self.weight_value.append(data)
+                    if name.endswith('bias'):
+                        self.bias_grad.append(grad)
+                        self.bias_value.append(data)
         else:
             index = 0
             for name, param in model.named_parameters():
-                grad = param.grad.clone().detach().unsqueeze(0)
-                data = param.data.clone().detach().unsqueeze(0)
-                if name.endswith('weight'):
-                    self.weight_grad[index] = torch.cat((self.weight_grad[index], grad), dim = 0)
-                    self.weight_value[index] = torch.cat((self.weight_value[index], data), dim = 0)
-                if name.endswith('bias'):
-                    self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
-                    self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
-                    index += 1
+                if name.endswith(("bias", "weight")):
+                    grad = param.grad.clone().detach().unsqueeze(0)
+                    data = param.data.clone().detach().unsqueeze(0)
+                    if name.endswith('weight'):
+                        self.weight_grad[index] = torch.cat((self.weight_grad[index], grad), dim = 0)
+                        self.weight_value[index] = torch.cat((self.weight_value[index], data), dim = 0)
+                    if name.endswith('bias'):
+                        self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
+                        self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
+                        index += 1
 
     def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 1):
         if isWeight and isGrad:
