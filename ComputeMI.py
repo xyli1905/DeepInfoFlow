@@ -19,7 +19,7 @@ class ComputeMI:
         # self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
         self.model_name, self.path = self._find_newest_model('./results') # auto-find the newest model
         # self.path =os.path.join('./results', self.model_name)# info plane dir
-        # print(self.model_name)
+        print(self.model_name)
         # print(self.path)
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
@@ -184,12 +184,11 @@ class ComputeMI:
                 IY_dic[epoch] = IY_epoch
             else:
                 raise RuntimeError('epoch is duplicated')
-
-        #save plot data
-        self._save_plot_data("IX_dic_data.pkl", IX_dic)
-        self._save_plot_data("IY_dic_data.pkl", IY_dic)
         
+        # save data, then plot
         plotter = PlotFigure(self._opt, self.model_name)
+        plotter.save_plot_data("IX_dic_data.pkl", IX_dic)
+        plotter.save_plot_data("IY_dic_data.pkl", IY_dic)
         plotter.plot_MI_plane(IX_dic, IY_dic)
         end = time.time()
         print(" ")
@@ -212,18 +211,6 @@ class ComputeMI:
             T_XT = layer[random_indexes["T_XT"][i]] # P(X)P(T) for T
             T_YT = layer[random_indexes["T_YT"][i]] # P(Y)P(T) for T
 
-            # print("------"*5)
-            # # print(random_indexes["XT"])
-            # # print(" ")
-            # print(repr(random_indexes["X_XT"]))
-            # print(" ")
-            # print(repr(random_indexes["T_XT"]))
-            # print(" ")
-            # print(repr(random_indexes["Y_YT"]))
-            # print(" ")
-            # print(repr(random_indexes["T_YT"]))
-            # print("------"*5)
-
             # MI for X and T: I(X;T) = Dkl(P(X,T)||P(X)P(T))
             sample_XT_pair = np.concatenate((XT_X, XT_T), axis = 1)
             sample_X_and_T = np.concatenate((X_XT, T_XT), axis = 1)
@@ -239,6 +226,7 @@ class ComputeMI:
             avg_IY += IY
 
         return avg_IX / Nrepeats, avg_IY / Nrepeats
+
 
 
     def kdeMethod(self):
@@ -316,22 +304,14 @@ class ComputeMI:
             else:
                 raise RuntimeError('epoch is duplicated')
 
+        # save data, then plot
         plotter = PlotFigure(self._opt, self.model_name)
+        plotter.save_plot_data("IX_dic_data.pkl", IX)
+        plotter.save_plot_data("IY_dic_data.pkl", IY)
         plotter.plot_MI_plane(IX, IY)
-        #save plot data
-        self._save_plot_data("IX_dic_data.pkl", IX)
-        self._save_plot_data("IY_dic_data.pkl", IY)
         end = time.time()
         print(" ")
         print("total time cost : ", end - start)
-
-    def _save_plot_data(self, fname, data):
-        save_root = "./saved_plot_data"
-        if not os.path.exists(save_root):
-            os.mkdir(save_root)
-        save_path = os.path.join(save_root, fname)
-        with open(save_path, "wb") as f:
-            pickle.dump(data, f)
 
 
     def needLog(self, epoch):

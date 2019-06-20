@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from cycler import cycler
 import numpy as np
+import pickle
 import datetime
 import os
 
@@ -17,9 +18,10 @@ see for reference: https://github.com/matplotlib/matplotlib/issues/13414
 '''
 
 class PlotFigure:
-    def __init__(self, opt, model_name):
+    def __init__(self, opt, model_name=None):
         self.name = 'Plot_Utils'
         self._opt = opt
+        self._results_root = './results'
 
         # NOTE we save figures in two places: the plot_root and results/model_path
         # check existence of plot_root
@@ -27,11 +29,28 @@ class PlotFigure:
         if not os.path.exists(opt.plot_dir):
             os.mkdir(opt.plot_dir)
 
-        self.model_name = model_name
-        tmp_dir = os.path.join('./results', model_name)
-        self.model_path = os.path.join(tmp_dir, 'plots')
-        if not os.path.exists(self.model_path):
-            os.mkdir(self.model_path)
+        if model_name == None:
+            self.model_name, tmp_dir = self._find_newest_model(self._results_root)
+        else:
+            self.model_name = model_name
+            tmp_dir = os.path.join(self._results_root, model_name)
+
+        self.model_plot_fig_path = os.path.join(tmp_dir, 'plots_fig')
+        if not os.path.exists(self.model_plot_fig_path):
+            os.mkdir(self.model_plot_fig_path)
+
+        self.model_plot_data_path = os.path.join(tmp_dir, 'plots_data')
+        if not os.path.exists(self.model_plot_data_path):
+            os.mkdir(self.model_plot_data_path)
+
+    def _find_newest_model(self, mpath):
+        all_subdirs = []
+        for d in os.listdir(mpath):
+            bd = os.path.join(mpath, d)
+            if os.path.isdir(bd): all_subdirs.append(bd)
+        latest_subdir = max(all_subdirs, key=os.path.getmtime)
+        mname = os.path.split(latest_subdir)[-1]
+        return mname, latest_subdir
 
 ##NOTE old code for plot MI plane
     # def plot_MI_plane_1(self, MI_X_T, MI_Y_T):
@@ -343,10 +362,10 @@ class PlotFigure:
         we use pdf rather then eps since eps in matplotlib doesn't support transparency
         '''
         # save in model_path
-        fig_name_eps = os.path.join(self.model_path, "{}.pdf".format(fig_name))
+        fig_name_eps = os.path.join(self.model_plot_fig_path, "{}.pdf".format(fig_name))
         fig.savefig(fig_name_eps, format='pdf')
 
-        fig_name_jpg = os.path.join(self.model_path, "{}.jpg".format(fig_name))
+        fig_name_jpg = os.path.join(self.model_plot_fig_path, "{}.jpg".format(fig_name))
         fig.savefig(fig_name_jpg, format='jpeg')
 
         # save in plot_root
@@ -355,6 +374,22 @@ class PlotFigure:
 
         fig_name_jpg = os.path.join(self.plot_dir, "{}_{}.jpg".format(fig_name, self.model_name))
         fig.savefig(fig_name_jpg, format='jpeg')
+
+
+    
+
+    def save_plot_data(self, fname, data):
+        '''
+        call save PLOT data only because we save to the model_plot_data_path
+        '''
+        save_path = os.path.join(self.model_plot_data_path, fname)
+        with open(save_path, "wb") as f:
+            pickle.dump(data, f)
+
+
+
+    def post_plot(self):
+        pass
 
 
 
