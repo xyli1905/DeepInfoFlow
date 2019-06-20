@@ -388,8 +388,31 @@ class PlotFigure:
 
 
 
-    def post_plot(self):
-        pass
+    def post_plot(self, plot_name):
+        if plot_name == 'mean_std':
+            epoch_data = self._load_plot_data("recorded_epochs_data.pkl")
+            mean_data = self._load_plot_data("mean_data.pkl")
+            std_data = self._load_plot_data("std_data.pkl")
+            self.plot_mean_std(epoch_data, mean_data, std_data)
+
+        elif plot_name == 'svd':
+            epoch_data = self._load_plot_data("recorded_epochs_data.pkl")
+            svds_data = self._load_plot_data("svds_data.pkl")
+            self.plot_svd(epoch_data, svds_data)
+
+        elif plot_name == 'MI_plane':
+            IX_data = self._load_plot_data("IX_dic_data.pkl")
+            IY_data = self._load_plot_data("IY_dic_data.pkl")
+            self.plot_MI_plane(IX_data, IY_data)
+
+        elif plot_name == 'acc_loss':
+            raise NotImplementedError('to be implemented soon')
+
+    def _load_plot_data(self, fname):
+        data_path = os.path.join(self.model_plot_data_path, fname)
+        with open(data_path, "wb") as f:
+            data = pickle.loads(f)
+        return data
 
 
 
