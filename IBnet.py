@@ -28,6 +28,8 @@ class SaveActivations:
         # dataset
         if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
+            self._train_size = len(train_data)
+            self._test_size  = len(test_data)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._initialize_model(dims = self._opt.layer_dims)
@@ -36,6 +38,8 @@ class SaveActivations:
         elif self._opt.dataset == "IBNet":
             train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
             test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
+            self._train_size = len(train_data)
+            self._test_size  = len(test_data)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._initialize_model(dims = self._opt.layer_dims)
@@ -87,9 +91,6 @@ class SaveActivations:
 
         save_step = 100
 
-        eta = 1.
-        running_loss = 0.0
-        running_acc = 0.0
         t_begin = time.time()
 
         # main loop for training
@@ -101,8 +102,13 @@ class SaveActivations:
             if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                 print('\n{}'.format(11*'------'))
             
-            running_acc = 0
-            running_acc = 0
+            # # initialize the running loss & running accuracy
+            # eta = 1.
+            # running_loss = 0.
+            # running_acc  = 0.
+            # initialize the accumulated loss & accuracy
+            accumu_acc  = 0.
+            accumu_loss = 0.
             for i_batch , (inputs, labels) in enumerate(self._train_set):
                 inputs = inputs.to(self._device)
                 labels = labels.to(self._device)
@@ -122,49 +128,84 @@ class SaveActivations:
 
                 self._logger.log(self._model)# each time update weights LOG IT!
 
-                # monitor the running loss & running accuracy
+                # # monitor the running loss & running accuracy
                 # eta = eta / (1. + bsize*eta)
-                # running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
+                # running_loss = (1. - bsize*eta)*running_loss + eta*bsize*loss.detach()
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
-                running_acc = float(corrects.detach() / bsize)
-                running_loss = float(loss.detach())
-                self._logger.log_acc_loss('train', acc=running_acc, loss=running_loss)
-                if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
-                    output_format = "\repoch:{epoch} batch:{batch:2d} " +\
-                                    "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
-                                    "numacc:{num:.0f}/{tnum:.0f}"
-                    print(output_format.format(batch=i_batch+1,
-                                               epoch=i_epoch+1,
-                                               loss=running_loss,
-                                               acc=running_acc*100.,
-                                               num=corrects,
-                                               tnum=bsize))
+                # # monitor the batch loss & accuracy
+                # running_acc = float(corrects.detach() / bsize)
+                # running_loss = float(loss.detach())
+                # mointor the accumulated loss & accuracy
+                accumu_acc  += float(corrects.detach())
+                accumu_loss += float(bsize*loss.detach()) # CorssEntropy already averaged over minibatch
+                # if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                #     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
+                #                     "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                #                     "numacc:{num:.0f}/{tnum:.0f}"
+                #     print(output_format.format(batch=i_batch+1,
+                #                                epoch=i_epoch+1,
+                #                                loss=running_loss,
+                #                                acc=running_acc*100.,
+                #                                num=corrects,
+                #                                tnum=bsize))
             
+            # dump info of training for selected epochs
+            avg_acc  = accumu_acc / float(self._train_size)
+            avg_loss = accumu_loss / float(self._train_size)
+            self._logger.log_acc_loss(i_epoch, 'train', acc=avg_acc, loss=avg_loss)
+            if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                output_format = "\repoch:{epoch} Loss:{loss:.5e} Acc:{acc:.5f}% " +\
+                                "numacc:{num:.0f}/{tnum:.0f}"
+                print(output_format.format(epoch=i_epoch+1,
+                                           loss=avg_loss,
+                                           acc=avg_acc*100.,
+                                           num=accumu_acc,
+                                           tnum=self._train_size))
+
+            # set to test
             self._model.eval()
+
+            # # initialize the running accuracy
+            # eta = 1.
+            # running_acc = 0.
+            # initialize the accumulated accuracy
+            accumu_acc = 0.
             for i_batch , (inputs, labels) in enumerate(self._test_set):
                 inputs = inputs.to(self._device)
                 labels = labels.to(self._device)
                 bsize = inputs.shape[0]
-                    #forward
+                #forward
                 outputs = self._model(inputs)
                 _, preds = torch.max(outputs, 1)
                 corrects = torch.sum(preds == labels.data).double()
 
-                # monitor the running loss & running accuracy
+                # # monitor the running loss & running accuracy
                 # eta = eta / (1. + bsize*eta)
-                # running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
-                running_acc = float(corrects.detach() / bsize)
-                self._logger.log_acc_loss('test', acc=running_acc)
-                if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
-                    output_format = "\repoch:{epoch} batch:{batch:2d} " +\
-                                    "Acc:{acc:.5f}% " +\
-                                    "numacc:{num:.0f}/{tnum:.0f}"
-                    print(output_format.format(batch=i_batch+1,
-                                               epoch=i_epoch+1,
-                                               acc=running_acc*100.,
-                                               num=corrects,
-                                               tnum=bsize))
+                # # monitor the batch accuracy
+                # running_acc = float(corrects.detach() / bsize)
+                # monitor the accumulated accuracy
+                accumu_acc += float(corrects.detach())
+                # if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                #     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
+                #                     "Acc:{acc:.5f}% " +\
+                #                     "numacc:{num:.0f}/{tnum:.0f}"
+                #     print(output_format.format(batch=i_batch+1,
+                #                                epoch=i_epoch+1,
+                #                                acc=running_acc*100.,
+                #                                num=corrects,
+                #                                tnum=bsize))
+            
+            # dump info of testing for selected epochs
+            avg_acc = accumu_acc / float(self._test_size)
+            self._logger.log_acc_loss(i_epoch, 'test', acc=avg_acc)
+            if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
+                output_format = "\repoch:{epoch} Acc:{acc:.5f}% " +\
+                                "numacc:{num:.0f}/{tnum:.0f}"
+                print(output_format.format(epoch=i_epoch+1,
+                                           acc=avg_acc*100.,
+                                           num=accumu_acc,
+                                           tnum=self._test_size))
 
             self._logger.update(i_epoch)# to calculate std and mean
 

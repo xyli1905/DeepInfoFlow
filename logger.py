@@ -18,6 +18,7 @@ class Logger(object):
         self.bias_grad    = [] # to store bias'
         self.bias_value   = [] # to store bias
 
+        self.full_epoch_list = [] # record whole list of epochs
         self.loss      = [] # to record loss
         self.acc_train = [] # to record training accuracy
         self.acc_test  = [] # to record test accuracy
@@ -131,11 +132,12 @@ class Logger(object):
                         self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                         index += 1
         
-    def log_acc_loss(self, record_type, acc, loss=None):
+    def log_acc_loss(self, epoch, record_type, acc, loss=None):
         if record_type == 'train':
             # record acc and loss for training process
             self.acc_train.append(acc)
             self.loss.append(loss)
+            self.full_epoch_list.append(epoch) # append epoch only for train case
         elif record_type == 'test':
             # record acc for training process
             self.acc_test.append(acc)
@@ -231,7 +233,7 @@ class Logger(object):
             self.plotter.save_plot_data("svds_data.pkl", self.svds)
         # plot acc_loss and save the data
         if acc_loss:
-            self.plotter.plot_acc_loss(self.recorded_epochs, self.acc_train, self.acc_test, self.loss)
+            self.plotter.plot_acc_loss(self.full_epoch_list, self.acc_train, self.acc_test, self.loss)
             self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
             self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
             self.plotter.save_plot_data("loss_data.pkl", self.loss)

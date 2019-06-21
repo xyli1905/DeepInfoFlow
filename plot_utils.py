@@ -354,7 +354,42 @@ class PlotFigure:
 
     
     def plot_acc_loss(self, Lepoch, acc_train, acc_test, loss):
-        pass
+        '''
+        plot the variation of mean and standard devidation for each layer with respect to epoch
+
+        Lepoch    --- array of recorded epochs; of dim (Nepoch,)
+        acc_train --- list of training accuracy; of dim (Nepoch,)
+        acc_test  --- list of test accuracy; of dim (Nepoch,)
+        loss      --- list of traning loss; of dim (Nepoch,)
+        '''
+        fig, ax1 = plt.subplots()
+
+        color = 'tab:blue'
+        ax1.plot(Lepoch, acc_train, ls='-', color=color, label='training acc')
+        ax1.plot(Lepoch, acc_test, ls='-.', color=color, label='test acc')
+
+        ax1.legend(bbox_to_anchor=[0.95, 0.6])
+        ax1.set_xlabel('number of epochs', fontsize = 18)
+        ax1.set_ylabel('Training and Testing Accuracy', fontsize = 18)
+        # ax1.set_ylim(top = 1.2)
+        ax1.set_facecolor('#edf0f8')
+        ax1.grid(color='w', linestyle='-.', linewidth = 1)
+        ax1.tick_params(labelsize = 13)
+
+        ax2 = ax1.twinx()
+
+        color = 'tab:orange'
+        ax2.plot(Lepoch, loss, ls='-', color=color, label='Loss')
+
+        ax2.legend(bbox_to_anchor=[0.95, 0.4])
+        ax2.set_ylabel('Loss', fontsize = 18)
+        ax2.tick_params(labelsize = 13)
+
+        fig.suptitle("Accuracy and Loss", fontsize=20)
+        fig.subplots_adjust(left = 0.14, bottom=0.14, top=0.9, right=0.88)
+
+        # set dir for mean_std; saving figure
+        self._save_fig(fig, 'Acc_and_Loss')
 
 
     def _save_fig(self, fig, fig_name):
@@ -376,7 +411,6 @@ class PlotFigure:
         fig.savefig(fig_name_jpg, format='jpeg')
 
 
-    
 
     def save_plot_data(self, fname, data):
         '''
