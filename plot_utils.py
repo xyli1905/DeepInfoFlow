@@ -353,7 +353,7 @@ class PlotFigure:
         self._save_fig(fig, 'SingularValues'+nameflag)
 
     
-    def plot_acc_loss(self):
+    def plot_acc_loss(self, Lepoch, acc_train, acc_test, loss):
         pass
 
 

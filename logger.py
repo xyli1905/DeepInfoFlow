@@ -18,6 +18,10 @@ class Logger(object):
         self.bias_grad    = [] # to store bias'
         self.bias_value   = [] # to store bias
 
+        self.loss      = [] # to record loss
+        self.acc_train = [] # to record training accuracy
+        self.acc_test  = [] # to record test accuracy
+
         self.plotter = PlotFigure(self._opt, self.plot_name)
         self.recorded_epochs = []
 
@@ -101,6 +105,7 @@ class Logger(object):
         self.bias_value = []
 
     def log(self, model):
+        # record model parameters
         if len(self.weight_grad) == 0 and len(self.weight_value) == 0 and len(self.bias_grad) == 0 and len(self.bias_value) == 0:
             for name, param in model.named_parameters():
                 if name.endswith(("bias", "weight")):
@@ -125,6 +130,18 @@ class Logger(object):
                         self.bias_grad[index] = torch.cat((self.bias_grad[index], grad), dim = 0)
                         self.bias_value[index] = torch.cat((self.bias_value[index], data), dim = 0)
                         index += 1
+        
+    def log_acc_loss(self, record_type, acc, loss=None):
+        if record_type == 'train':
+            # record acc and loss for training process
+            self.acc_train.append(acc)
+            self.loss.append(loss)
+        elif record_type == 'test':
+            # record acc for training process
+            self.acc_test.append(acc)
+        else:
+            raise ValueError('not valid record type')
+
 
     def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 1):
         if isWeight and isGrad:
@@ -201,7 +218,7 @@ class Logger(object):
 
         return epoch_mean, epoch_std
 
-    def plot_figures(self, mean_and_std = True, sv = True):
+    def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True):
         # plot mean_and_std and save the data
         if mean_and_std:
             epoch_mean, epoch_std = self.get_mean_std()
@@ -212,8 +229,14 @@ class Logger(object):
         if sv:
             self.plotter.plot_svd(self.recorded_epochs, self.svds)
             self.plotter.save_plot_data("svds_data.pkl", self.svds)
+        # plot acc_loss and save the data
+        if acc_loss:
+            self.plotter.plot_acc_loss(self.recorded_epochs, self.acc_train, self.acc_test, self.loss)
+            self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
+            self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
+            self.plotter.save_plot_data("loss_data.pkl", self.loss)
         # save epoch data
-        if mean_and_std or sv:
+        if mean_and_std or sv or acc_loss:
             self.plotter.save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
 
 

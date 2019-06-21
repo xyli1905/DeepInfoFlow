@@ -128,6 +128,7 @@ class SaveActivations:
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 running_acc = float(corrects.detach() / bsize)
                 running_loss = float(loss.detach())
+                self._logger.log_acc_loss('train', acc=running_acc, loss=running_loss)
                 if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
                                     "Loss:{loss:.5e} Acc:{acc:.5f}% " +\
@@ -154,6 +155,7 @@ class SaveActivations:
                 # running_loss = (1. - bsize*eta)*running_loss + eta*loss.detach()
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 running_acc = float(corrects.detach() / bsize)
+                self._logger.log_acc_loss('test', acc=running_acc)
                 if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
                     output_format = "\repoch:{epoch} batch:{batch:2d} " +\
                                     "Acc:{acc:.5f}% " +\
