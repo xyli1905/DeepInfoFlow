@@ -234,6 +234,7 @@ class Logger(object):
         # plot acc_loss and save the data
         if acc_loss:
             self.plotter.plot_acc_loss(self.full_epoch_list, self.acc_train, self.acc_test, self.loss)
+            self.plotter.save_plot_data("full_epoch_list_data.pkl", self.full_epoch_list)
             self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
             self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
             self.plotter.save_plot_data("loss_data.pkl", self.loss)

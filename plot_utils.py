@@ -440,7 +440,11 @@ class PlotFigure:
             self.plot_MI_plane(IX_data, IY_data)
 
         elif plot_name == 'acc_loss':
-            raise NotImplementedError('to be implemented soon')
+            full_epoch_list = self._load_plot_data("full_epoch_list_data.pkl")
+            acc_train = self._load_plot_data("acc_train_data.pkl")
+            acc_test = self._load_plot_data("acc_test_data.pkl")
+            loss = self._load_plot_data("loss_data.pkl")
+            self.plot_acc_loss(full_epoch_list, acc_train, acc_test, loss)
 
     def _load_plot_data(self, fname):
         data_path = os.path.join(self.model_plot_data_path, fname)
