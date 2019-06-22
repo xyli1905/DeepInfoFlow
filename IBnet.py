@@ -133,8 +133,8 @@ class SaveActivations:
                 # running_loss = (1. - bsize*eta)*running_loss + eta*bsize*loss.detach()
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 # # monitor the batch loss & accuracy
-                # running_acc = float(corrects.detach() / bsize)
-                # running_loss = float(loss.detach())
+                # batch_acc = float(corrects.detach() / bsize)
+                # batch_loss = float(loss.detach())
                 # mointor the accumulated loss & accuracy
                 accumu_acc  += float(corrects.detach())
                 accumu_loss += float(bsize*loss.detach()) # CorssEntropy already averaged over minibatch
@@ -183,7 +183,7 @@ class SaveActivations:
                 # eta = eta / (1. + bsize*eta)
                 # running_acc = (1. - bsize*eta)*running_acc + eta*corrects.detach()
                 # # monitor the batch accuracy
-                # running_acc = float(corrects.detach() / bsize)
+                # batch_acc = float(corrects.detach() / bsize)
                 # monitor the accumulated accuracy
                 accumu_acc += float(corrects.detach())
                 # if ((i_epoch+1) % save_step == 0) or (i_epoch == 0):
