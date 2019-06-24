@@ -221,6 +221,10 @@ class Logger(object):
         return epoch_mean, epoch_std
 
     def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True):
+        # save epoch data
+        if mean_and_std or sv or acc_loss:
+            # print(self.recorded_epochs)
+            self.plotter.save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
         # plot mean_and_std and save the data
         if mean_and_std:
             epoch_mean, epoch_std = self.get_mean_std()
@@ -238,9 +242,6 @@ class Logger(object):
             self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
             self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
             self.plotter.save_plot_data("loss_data.pkl", self.loss)
-        # save epoch data
-        if mean_and_std or sv or acc_loss:
-            self.plotter.save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
 
 
 

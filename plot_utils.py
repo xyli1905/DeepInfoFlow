@@ -10,7 +10,7 @@ import utils
 
 np.random.seed()
 
-# matplotlib.use("TKAgg")
+matplotlib.use("WXAgg")
 '''NOTE
 Seem for conda env, one must create a file `matplotlibrc` at the directory `~/.matplotlib`,
 and add the following content in this file:
@@ -264,6 +264,9 @@ class PlotFigure:
 
         # set dir for mean_std; saving figure
         self._save_fig(fig, 'Mean_and_STD')
+
+        # # show pic
+        # plt.show()
     
     def _commom_ax_setting_mean_std(self, ax, title_name, show_xlabel=True, show_ylabel=True):
         ax.set_title(title_name+" ("+self._opt.activation+")", fontsize=17)
@@ -415,33 +418,42 @@ class PlotFigure:
 
 
     def post_plot(self, plot_name):
-        if plot_name == 'mean_std':
+        if not isinstance(plot_name, list):
+            raise TypeError('plot_name must be a list of plot types')
+        if plot_name == []:
+            raise ValueError('plot list empty')
+            
+        if 'mean_std' in plot_name:
             epoch_data = self._load_plot_data("recorded_epochs_data.pkl")
             mean_data = self._load_plot_data("mean_data.pkl")
             std_data = self._load_plot_data("std_data.pkl")
             self.plot_mean_std(epoch_data, mean_data, std_data)
 
-        elif plot_name == 'svd':
+        if 'svd' in plot_name:
             epoch_data = self._load_plot_data("recorded_epochs_data.pkl")
             svds_data = self._load_plot_data("svds_data.pkl")
             self.plot_svd(epoch_data, svds_data)
 
-        elif plot_name == 'MI_plane':
+        if 'MI_plane' in plot_name:
             IX_data = self._load_plot_data("IX_dic_data.pkl")
             IY_data = self._load_plot_data("IY_dic_data.pkl")
             self.plot_MI_plane(IX_data, IY_data)
 
-        elif plot_name == 'acc_loss':
+        if 'acc_loss' in plot_name:
             full_epoch_list = self._load_plot_data("full_epoch_list_data.pkl")
             acc_train = self._load_plot_data("acc_train_data.pkl")
             acc_test = self._load_plot_data("acc_test_data.pkl")
             loss = self._load_plot_data("loss_data.pkl")
             self.plot_acc_loss(full_epoch_list, acc_train, acc_test, loss)
 
+        plt.show()
+            
+
     def _load_plot_data(self, fname):
         data_path = os.path.join(self.model_plot_data_path, fname)
-        with open(data_path, "wb") as f:
-            data = pickle.loads(f)
+        # print(data_path)
+        with open(data_path, "rb") as f:
+            data = pickle.load(f)
         return data
 
 
@@ -450,29 +462,33 @@ class PlotFigure:
 def main():
     '''test run
     '''
-    # test data for plot_MI_plane
-    x = {0: np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ]),
-         1: np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
-    }  
-    y = {0: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ]),
-         1: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
-    }
+    # # test data for plot_MI_plane
+    # x = {0: np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ]),
+    #      1: np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
+    # }  
+    # y = {0: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ]),
+    #      1: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
+    # }
 
-    # test data for plot_MI_plane
-    Lepoch = np.array([1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900])
-    mu = np.random.rand(1, Lepoch.shape[0])
-    sigma = np.random.rand(1, Lepoch.shape[0])
+    # # test data for plot_MI_plane
+    # Lepoch = np.array([1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900])
+    # mu = np.random.rand(1, Lepoch.shape[0])
+    # sigma = np.random.rand(1, Lepoch.shape[0])
 
     C = type('type_C', (object,), {})
     opt = C()
 
     opt.plot_dir = './plots'
-    opt.max_epoch = 10
-    model_name = 'testdrawing'
-    # opt.timestamp = '19050310'
-    pltfig = PlotFigure(opt, model_name)
-    pltfig.plot_MI_plane(x,y)
-    # pltfig.plot_mean_std(Lepoch, mu, sigma)
+    opt.max_epoch = 100
+    opt.activation = 'tanh'
+    # # opt.timestamp = '19050310'
+    # pltfig = PlotFigure(opt, model_name)
+    # pltfig.plot_MI_plane(x,y)
+    # # pltfig.plot_mean_std(Lepoch, mu, sigma)
+
+    # test post plot
+    pltfig = PlotFigure(opt)
+    pltfig.post_plot(['acc_loss'])
     
 
 if __name__ == "__main__":
