@@ -6,6 +6,7 @@ import numpy as np
 import pickle
 import datetime
 import os
+import utils
 
 np.random.seed()
 
@@ -30,7 +31,7 @@ class PlotFigure:
             os.mkdir(opt.plot_dir)
 
         if model_name == None:
-            self.model_name, tmp_dir = self._find_newest_model(self._results_root)
+            self.model_name, tmp_dir = utils.find_newest_model(self._results_root)
         else:
             self.model_name = model_name
             tmp_dir = os.path.join(self._results_root, model_name)
@@ -42,15 +43,6 @@ class PlotFigure:
         self.model_plot_data_path = os.path.join(tmp_dir, 'plots_data')
         if not os.path.exists(self.model_plot_data_path):
             os.mkdir(self.model_plot_data_path)
-
-    def _find_newest_model(self, mpath):
-        all_subdirs = []
-        for d in os.listdir(mpath):
-            bd = os.path.join(mpath, d)
-            if os.path.isdir(bd): all_subdirs.append(bd)
-        latest_subdir = max(all_subdirs, key=os.path.getmtime)
-        mname = os.path.split(latest_subdir)[-1]
-        return mname, latest_subdir
 
 ##NOTE old code for plot MI plane
     # def plot_MI_plane_1(self, MI_X_T, MI_Y_T):

@@ -7,6 +7,7 @@ from torch.utils.data.dataset import Dataset
 import torchvision
 import torchvision.datasets as data
 import torchvision.transforms as transforms
+import os
 
 
 class CustomDataset(Dataset):
@@ -114,6 +115,18 @@ def data_shuffle(data_sets_org, percent_of_train, min_test_data=80, shuffle_data
     data_sets.test.data = shuffled_data[start_test_index:, :]
     data_sets.test.labels = shuffled_labels[start_test_index:, :]
     return data_sets
+
+# auto find the most recent model, used in ComputeMI and plot_utils
+def find_newest_model(mpath):
+    all_subdirs = []
+    for d in os.listdir(mpath):
+        bd = os.path.join(mpath, d)
+        if os.path.isdir(bd): all_subdirs.append(bd)
+    latest_subdir = max(all_subdirs, key=os.path.getmtime)
+    mname = os.path.split(latest_subdir)[-1]
+    return mname, latest_subdir
+
+
 
 if __name__ == "__main__":
     # get_IB_data('2017_12_21_16_51_3_275766')

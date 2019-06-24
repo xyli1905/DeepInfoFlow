@@ -16,11 +16,11 @@ class ComputeMI:
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
+        self.model_name = None
         # self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
-        self.model_name, self.path = self._find_newest_model('./results') # auto-find the newest model
-        # self.path =os.path.join('./results', self.model_name)# info plane dir
+        if self.model_name == None:
+            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
         print(self.model_name)
-        # print(self.path)
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
@@ -65,16 +65,6 @@ class ComputeMI:
             self.EVMethod()
         elif self.measure_type == 'kde':
             self.kdeMethod()
-
-
-    def _find_newest_model(self, mpath):
-        all_subdirs = []
-        for d in os.listdir(mpath):
-            bd = os.path.join(mpath, d)
-            if os.path.isdir(bd): all_subdirs.append(bd)
-        latest_subdir = max(all_subdirs, key=os.path.getmtime)
-        mname = os.path.split(latest_subdir)[-1]
-        return mname, latest_subdir
 
 
     def get_saved_labelixs_and_labelprobs(self):
