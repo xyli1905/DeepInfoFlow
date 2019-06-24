@@ -1,13 +1,11 @@
-# Repo for CMPS218 Spring 19 project Deep Information flow
-This repo is for UCSC CMPS218 Foundation of data science project.<br/>
-Our code is composed mainly by two parts IBNet.py and ComputeMI.py.<br/>
-IBNet.py is responsible for training and plotting mean_std plot and SVD plots.<br/>
-ComputeMI.py is responsible for estimating mutual information(MI).<br/>
-Our training data is coming from [ibsgd](https://github.com/artemyk/ibsgd) project. And we also reproduce the results from their project. 
+# Deep Information flow
 
+## Introduction
+Repo for our project Deep Information Flow<br/>
+We follow the idea from [ibsgd](https://github.com/artemyk/ibsgd) project. we reproduce their result by [PyTorch](https://pytorch.org/) which is faster than original Keras code. Despite the original mutual information (MI) measurement we also propose our own EVKL method in this code for comparison (it is still ongoing and the code is not stable right now).
 **This project is still ongoing. Detailed description will come soon**
 
-### Prerequisite
+## Prerequisite
 
 ```
 numpy
@@ -16,3 +14,10 @@ pytorch
 torchvision
 pathlib2
 ```
+
+## Usage
+1. The first step is to train a fully-connected deep neural network for analysis and calculate MI later.
+```
+python IBNet.py
+```
+The settings and configurations such as *batch size*, *learning rate* and *max epochs* are stored in [base_options.py](./base_options.py)
