@@ -7,10 +7,16 @@ import pickle
 import datetime
 import os
 import utils
+import sys
 
 np.random.seed()
 
-matplotlib.use("WXAgg")
+if sys.platform.startswith('darwin'):
+    matplotlib.use("WXAgg")
+elif sys.platform.startswith('win32'):
+    matplotlib.use("TKAgg")
+else:
+    pass
 '''NOTE
 Seem for conda env, one must create a file `matplotlibrc` at the directory `~/.matplotlib`,
 and add the following content in this file:
@@ -447,7 +453,6 @@ class PlotFigure:
             self.plot_acc_loss(full_epoch_list, acc_train, acc_test, loss)
 
         plt.show()
-            
 
     def _load_plot_data(self, fname):
         data_path = os.path.join(self.model_plot_data_path, fname)
