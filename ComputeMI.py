@@ -17,7 +17,10 @@ class ComputeMI:
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
         load_config = JsonParser() # training args
         self.model_name = None
+
         # self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
+        # self.path = os.path.join('./results', self.model_name)
+        
         if self.model_name == None:
             self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
         print(self.model_name)
