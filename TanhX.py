@@ -37,7 +37,7 @@ class TanhX(nn.Module):
             displacementX = dispX
             displacementY = float(0.5 * (Vmax + Vmin))
             scaleY = float(0.5 * (Vmax - Vmin))
-            scaleX = float(slope / scaleY)
+            scaleX = float(scaleY / slope)
 
 
         displacementX = torch.tensor(displacementX, dtype = torch.float)
@@ -74,14 +74,14 @@ class TanhX(nn.Module):
         return self.scaleY * torch.log(torch.tensor(1., dtype = torch.float) + torch.exp((1/self.scaleX) * (x - self.displacementX))) + self.displacementY
 
     def negativeSoftPlus(self, x):
-        return -self.scaleY * torch.log(torch.tensor(1., dtype = torch.float) + torch.exp((1/self.scaleX) * (-x - self.displacementX))) + self.displacementY
+        return -self.scaleY * torch.log(torch.tensor(1., dtype = torch.float) + torch.exp((1/self.scaleX) * (-x + self.displacementX))) + self.displacementY
 
     def Tanh(self, x):
         return self.scaleY * torch.tanh((1/self.scaleX) * (x - self.displacementX)) + self.displacementY
 
 if __name__ == "__main__":
-    my_net = nn.Sequential(TanhX(Vmax = 0, Vmin=None, slope=4, dispX = 0))
-    x = torch.arange(-10, 10, 0.1)
+    my_net = nn.Sequential(TanhX(Vmax = 3, Vmin=-4, slope=1, dispX = 0))
+    x = torch.arange(-5, 5, 0.1)
     y = my_net(Variable(x))
     import matplotlib.pyplot as plt
     print(y)
