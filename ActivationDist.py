@@ -78,6 +78,8 @@ class ActivationDist():
         #         data = data.detach().numpy()
         #         axs[i].hist(data, bins = 300)
         #     plt.show()
+
+
         ckpt = torch.load(os.path.join(self.path, "model_epoch_4000.pth"))
         # load model epoch weight
         self._model.load_state_dict(ckpt['model_state_dict'])

@@ -114,7 +114,7 @@ class Model(nn.Module):
                 x = dense(x)
                 if i < len(self.A):
                     activ = self.A[i]
-                    x = activ(x) 
+                    x = activ(x)
                 outputs.append(x)
             return outputs
 
