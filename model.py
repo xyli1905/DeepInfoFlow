@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import copy
 from ReLUX import ReLUX
+from TanhX import TanhX
 
 class Model(nn.Module):
     def __init__(self, activation , dims, train = True):
@@ -79,7 +80,14 @@ class Model(nn.Module):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append(ReLUX(leftPoint = [0, 0], rightPoint = None))
+                    self.A.append(ReLUX(leftPoint = [-3, -1], rightPoint = [3, 1]))
+                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+
+        elif name == 'tanhx':
+            for i in range(depth):
+                if numOfActiv > 0:
+                    numOfActiv -= 1
+                    self.A.append(TanhX(Vmax=None, Vmin = 0, slope = 1, dispX = 0))
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:

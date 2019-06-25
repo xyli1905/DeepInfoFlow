@@ -50,10 +50,10 @@ class ReLUX(nn.Module):
 
 
 if __name__ == "__main__":
-    my_net = nn.Sequential(ReLUX(leftPoint = [-2,-2], rightPoint = [0,0]))
-    x = torch.arange(-3, 3, 0.1)
+    my_net = nn.Sequential(ReLUX(leftPoint = [-3,-3], rightPoint = [3,3]))
+    x = torch.arange(-10, 10, 0.1)
     y = my_net(Variable(x))
-    import matplotlib.pyplot as plt 
+    import matplotlib.pyplot as plt
     print(y)
     plt.plot(x.numpy() , y.numpy())
     plt.show()
