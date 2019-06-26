@@ -79,9 +79,11 @@ class ActivationDist():
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
 
-            figure, axs = plt.subplots(1, 6, sharey=True, tight_layout = True)
-            plt.subplots_adjust(left = 0, right = 1, bottom=0, top=1,wspace =10, hspace =10)
+            plt.subplots_adjust(top=0.5)
+            figure, axs = plt.subplots(6, 1, sharex=False, sharey = True)
             axs = axs.flatten()
+            figure.suptitle('epoch: ' + str(epoch) + 'distribution of hidden layer outputs', fontsize=16, verticalalignment = "top")
+            plt.xlabel('hidden layer outputs value')
             for i in range(len(layer_activity)):
                 data = layer_activity[i].reshape(-1)
                 data = data.detach().numpy()
@@ -90,10 +92,11 @@ class ActivationDist():
             fname = os.path.join(self.saving_dir, fname)
             figure.savefig(fname, format='png')
             plt.close(figure)
+        self.GenerateGIF()
 
+    def GenerateGIF(self):
         file_names = [fn for fn in os.listdir(self.saving_dir) if fn.endswith('.png')]
         list.sort(file_names, key=lambda x: int(x.split('.')[0]))
-        print(file_names)
         file_names = [os.path.join(self.saving_dir, fn) for fn in file_names]
         clip = mpy.ImageSequenceClip(file_names, fps=2)
         filename = os.path.join(self.saving_dir, "Activation.gif")
