@@ -22,12 +22,14 @@ class ComputeMI:
         # self.path = os.path.join('./results', self.model_name)
         
         if self.model_name == None:
-            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
+            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model       
         print(self.model_name)
+        
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
         self._opt.batch_size = 1
+
         # dataset
         if self._opt.dataset == "MNIST":
             train_data, test_data = utils.get_mnist()
@@ -54,7 +56,7 @@ class ComputeMI:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
 
         # get model
-        self._model = Model(activation = self._opt.activation ,dims = self._opt.layer_dims, train = False)
+        self._model = Model(opt = self._opt, train = False)
         
         # get measure
         self.measure_type = measure_type

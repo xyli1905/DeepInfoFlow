@@ -8,20 +8,9 @@ class BaseOption:
         self._initialized = False
 
     def initialize(self):
-        # directory options
-
         # Arguments For IBnet Begin
-        self._parser.add_argument('--batch_size', type=int, default=512, help='number of data points in one batch')
-        self._parser.add_argument('--experiment_name', type=str, default='test_tanhx', help='a unique name for experiment')
-        self._parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
-        self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
-        self._parser.add_argument('--max_epoch', type=int, default=100, help='number of epochs')
-        self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
-        self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
+        self._parser.add_argument('--experiment_name', type=str, default='test_new_opt', help='a unique name for experiment')
         self._parser.add_argument('--layer_dims', type=list, default=[12, 10, 7, 5, 4, 3, 2], help='dimention of each layer')
-
-        self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
-        self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
 
         self._parser.add_argument('--activation', type=str, default='tanhx', help='activation method')
@@ -30,6 +19,17 @@ class BaseOption:
         self._parser.add_argument('--Vmin', type=float, default=-1.0, help='Min Value for activationX')
         self._parser.add_argument('--slope', type=float, default=1.0, help='slope for activationX')
         self._parser.add_argument('--dispX', type=float, default=0.0, help='x displacement for activationX')
+
+
+        self._parser.add_argument('--batch_size', type=int, default=512, help='number of data points in one batch')
+        self._parser.add_argument('--max_epoch', type=int, default=500, help='number of epochs')
+        self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
+
+        self._parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
+        self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
+        self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
+        
+        self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
 
         self._parser.add_argument('--std', type=self.boolean_string, default=True, help='whether to save nets gradient standard deviation')
         self._parser.add_argument('--mean', type=self.boolean_string, default=True, help='whether to save nets gradient mean')
@@ -40,16 +40,16 @@ class BaseOption:
 
 
         # Arguments For IBnet End
+        self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--chkp_dir', type=str, default='./checkpoints', help='directory storing trained models and optimizers')
         self._parser.add_argument('--data_dir', type=str, default='./data_proc/processed_data', help='directory storing preprocessed data')
-        self._parser.add_argument('--results_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--plot_dir', type=str, default='./plots', help='directory to store outputs of information plane plots')
+        # self._parser.add_argument('--results_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
 
 
-
-        # general options for training  (same for E and C)
-        self._parser.add_argument('--is_train', type=self.boolean_string, default=True, help='flag showing if the model is in training')
-        self._parser.add_argument('--is_debug', type=self.boolean_string, default=False, help='flags for debug mode')
+        # # general options for training  (same for E and C)
+        # self._parser.add_argument('--is_train', type=self.boolean_string, default=True, help='flag showing if the model is in training')
+        # self._parser.add_argument('--is_debug', type=self.boolean_string, default=False, help='flags for debug mode')
 
         self._initialized = True
 
@@ -66,15 +66,15 @@ class BaseOption:
 
 
         # create results folder
-        if not os.path.exists(self._opt.results_dir):
-            os.makedirs(self._opt.results_dir)
+        if not os.path.exists(self._opt.save_root_dir):
+            os.makedirs(self._opt.save_root_dir)
 
-        # create debug folder if need
-        if self._opt.is_debug:
-            print("running debuging mode")
-            if not os.path.exists(self._opt.debug_dir):
-                os.makedirs(self._opt.debug_dir)
-        else:
-            print("running normal mode")
+        # # create debug folder if need
+        # if self._opt.is_debug:
+        #     print("running debuging mode")
+        #     if not os.path.exists(self._opt.debug_dir):
+        #         os.makedirs(self._opt.debug_dir)
+        # else:
+        #     print("running normal mode")
 
         return self._opt

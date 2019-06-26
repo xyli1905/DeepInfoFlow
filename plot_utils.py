@@ -462,6 +462,8 @@ class PlotFigure:
 def main():
     '''test run
     '''
+    # Settings for interactive display of plots
+    #NOTE for Mac OS, use pythonw to call polt_utils instead of python
     if sys.platform.startswith('darwin'):
         matplotlib.use("WXAgg")
     elif sys.platform.startswith('win32'):

@@ -32,7 +32,7 @@ class SaveActivations:
             self._test_size  = len(test_data)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._initialize_model(dims = self._opt.layer_dims)
+            self._initialize_model()
             print("MNIST experiment")
 
         elif self._opt.dataset == "IBNet":
@@ -42,7 +42,7 @@ class SaveActivations:
             self._test_size  = len(test_data)
             self._train_set = torch.utils.data.DataLoader(train_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
             self._test_set = torch.utils.data.DataLoader(test_data, batch_size=self._opt.batch_size, shuffle=True, num_workers=self._opt.num_workers)
-            self._initialize_model(dims = self._opt.layer_dims)
+            self._initialize_model()
             print("IBnet experiment")
         else:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
@@ -69,14 +69,14 @@ class SaveActivations:
             setattr(self._opt, key, val)
 
 
-    def _initialize_model(self, dims):
+    def _initialize_model(self):
         # weight initialization
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model(activation = self._opt.activation, dims = dims, train=True)
+        self._model = Model(opt = self._opt)
         self._model.apply(weights_init)
         # optimizer
         # self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)

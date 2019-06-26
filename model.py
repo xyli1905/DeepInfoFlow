@@ -6,13 +6,15 @@ from ActivX import ReLUX, TanhX
 
 
 class Model(nn.Module):
-    def __init__(self, activation , dims, train = True):
+    # def __init__(self, activation , dims, train = True):
+    def __init__(self, opt, train = True):
         super(Model,self).__init__()
-        self.layer_dims = dims
+        self._opt = opt
+        self.layer_dims = self._opt.layer_dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
         self._train = train
-        self.construct_model_by_name(activation)
+        self.construct_model_by_name(self._opt.activation)
 
 
     def construct_model_by_name(self, name):
@@ -42,7 +44,8 @@ class Model(nn.Module):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( ActivX_dict[name](Vmax = 1, Vmin = -1, slope = 1, dispX = 0) )
+                    self.A.append( ActivX_dict[name](Vmax = self._opt.Vmax, Vmin = self._opt.Vmin, 
+                                                     slope = self._opt.slope, dispX = self._opt.dispX))
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:
@@ -77,7 +80,13 @@ class Model(nn.Module):
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
     print(device)
-    model = Model(activation = "relux", dims = [12,6,2])
+
+    C = type('type_C', (object,), {})
+    opt = C()
+    opt.layer_dims = [12, 6, 2]
+    opt.activation = 'tanh'
+
+    model = Model(opt)
     print (model)
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)

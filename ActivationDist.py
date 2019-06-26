@@ -19,12 +19,13 @@ class ActivationDist():
         load_config = JsonParser() # training args
         self.model_name = None
 
-        self.model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
-        self.path = os.path.join('./results', self.model_name)
+        # self.model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
+        # self.path = os.path.join('./results', self.model_name)
 
         if self.model_name == None:
             self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
         print(self.model_name)
+
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
 
         # force the batch size to 1 for calculation convinience
@@ -40,7 +41,7 @@ class ActivationDist():
         dataset = torch.utils.data.ConcatDataset([train_data, test_data])
         self._test_set = torch.utils.data.DataLoader(dataset, batch_size = self._opt.batch_size, shuffle = False, num_workers = 0)
 
-        self._model = Model(activation = self._opt.activation ,dims = self._opt.layer_dims, train = False)
+        self._model = Model(opt = self._opt, train = False)
 
     def CalculateDist(self):
         model_path = os.path.join(self.path, 'models')
