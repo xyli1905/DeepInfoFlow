@@ -117,7 +117,8 @@ class ComputeMI:
         random_indexes = self.random_index((Nrepeats, 1000))
 
         print("len dataset : ", len(self._test_set))
-        epoch_files = os.listdir(self.path)
+        model_path = os.path.join(self.path, 'models')
+        epoch_files = os.listdir(model_path)
         for epoch_file in epoch_files:
             # initial progress record
             progress += 1
@@ -127,7 +128,7 @@ class ComputeMI:
             if not epoch_file.endswith('.pth'):
                 continue
             # load ckpt
-            ckpt = torch.load(os.path.join(self.path, epoch_file))
+            ckpt = torch.load(os.path.join(model_path, epoch_file))
             epoch = ckpt['epoch']
 
             #check if this epoch need to be calculated
@@ -225,7 +226,8 @@ class ComputeMI:
     def kdeMethod(self):
         saved_labelixs, label_probs = self.get_saved_labelixs_and_labelprobs()
 
-        epoch_files = os.listdir(self.path)
+        model_path = os.path.join(self.path, 'models')
+        epoch_files = os.listdir(model_path)
         start = time.time()
 
         IX = {}
@@ -242,7 +244,7 @@ class ComputeMI:
                 continue
             
             # load ckpt
-            ckpt = torch.load(os.path.join(self.path, epoch_file))
+            ckpt = torch.load(os.path.join(model_path, epoch_file))
             epoch = ckpt['epoch']
 
             #check if this epoch need to be calculated

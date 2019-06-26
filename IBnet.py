@@ -51,12 +51,15 @@ class SaveActivations:
         save_root_dir = self._opt.save_root_dir
         dataset = self._opt.dataset
         time = datetime.datetime.today().strftime('%m_%d_%H_%M')
-        model = ''.join(list(map(lambda x:str(x) + '_', self._model.layer_dims)))
-        folder_name = dataset + '_'+self._opt.experiment_name + '_Time_' + time + '_Model_' + model
+        folder_name = dataset + '_'+self._opt.experiment_name + '_' + self._opt.activation + '_Time_' + time
         self._path_to_dir = save_root_dir + '/' + folder_name + '/'
         print(self._path_to_dir)
         if not os.path.exists(self._path_to_dir):
             os.makedirs(self._path_to_dir)
+
+        self.model_path = os.path.join(self._path_to_dir, "models")
+        if not os.path.exists(self.model_path):
+            os.makedirs(self.model_path)
 
         self._logger = Logger(opt=self._opt, plot_name = folder_name)
         self._json = JsonParser()
@@ -233,7 +236,8 @@ class SaveActivations:
     
     def generate_save_fullpath(self, epoch):
         suffix = '.pth'
-        fullpath = self._path_to_dir + 'model_epoch_' + str(epoch) + suffix
+        fullpath = 'model_epoch_' + str(epoch) + suffix
+        fullpath = os.path.join(self.model_path, fullpath)
         return fullpath
 
 if __name__ == "__main__":
