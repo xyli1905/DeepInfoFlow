@@ -21,9 +21,15 @@ class BaseOption:
         self._parser.add_argument('--layer_dims', type=list, default=[12, 10, 7, 5, 4, 3, 2], help='dimention of each layer')
 
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
-        self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
         self._parser.add_argument('--save_root_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
         self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
+
+        self._parser.add_argument('--activation', type=str, default='tanh', help='activation method')
+        #below four only apply to 'relux' and 'tanhx' cases
+        self._parser.add_argument('--Vmax', type=float, default=1.0, help='Max Value for activationX')
+        self._parser.add_argument('--Vmin', type=float, default=-1.0, help='Min Value for activationX')
+        self._parser.add_argument('--slope', type=float, default=1.0, help='slope for activationX')
+        self._parser.add_argument('--dispX', type=float, default=0.0, help='x displacement for activationX')
 
         self._parser.add_argument('--std', type=self.boolean_string, default=True, help='whether to save nets gradient standard deviation')
         self._parser.add_argument('--mean', type=self.boolean_string, default=True, help='whether to save nets gradient mean')

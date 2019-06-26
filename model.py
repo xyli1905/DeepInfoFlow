@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
-from ReLUX import ReLUX
-from TanhX import TanhX
+from ActivX import ReLUX, TanhX
+
 
 class Model(nn.Module):
     def __init__(self, activation , dims, train = True):
@@ -19,75 +19,30 @@ class Model(nn.Module):
         depth = len(self.layer_dims) - 1
         numOfActiv = depth - 1
 
-        if name == 'tanh':
+        activ_dict = {'tanh':nn.Tanh(), 'relu': nn.ReLU(), 'relu6': nn.ReLU6(), 
+                      'elu': nn.ELU(), 'prelu': nn.PReLU(), 'leakyRelu': nn.LeakyReLU(), 
+                      'sigmoid': nn.Sigmoid(), 'softplus': nn.Softplus()}
+
+        ActivX_dict = {'relux': ReLUX, 'tanhx': TanhX}
+
+        if name in activ_dict.keys():
+  
+            print("\rusing buildin activation")
+
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append(nn.Tanh())
+                    self.A.append( activ_dict[name] )
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
+        elif name in ActivX_dict.keys():
 
-        elif name == 'relu':
+            print("\rusing activationX")
+
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append(nn.ReLU())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'relu6':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.ReLU6())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'elu':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.ELU())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'prelu':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.PReLU())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'leakyRelu':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.LeakyReLU())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'sigmoid':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.Sigmoid())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'softplus':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(nn.Softplus())
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'relux':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(ReLUX(leftPoint = [-3, -1], rightPoint = [3, 1]))
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
-
-        elif name == 'tanhx':
-            for i in range(depth):
-                if numOfActiv > 0:
-                    numOfActiv -= 1
-                    self.A.append(TanhX(Vmax=None, Vmin = 0, slope = 1, dispX = 0))
+                    self.A.append( ActivX_dict[name](Vmax = None, Vmin = 0, slope = 1, dispX = 0) )
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:
