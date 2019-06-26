@@ -11,12 +11,7 @@ import sys
 
 np.random.seed()
 
-if sys.platform.startswith('darwin'):
-    matplotlib.use("WXAgg")
-elif sys.platform.startswith('win32'):
-    matplotlib.use("TKAgg")
-else:
-    pass
+
 '''NOTE
 Seem for conda env, one must create a file `matplotlibrc` at the directory `~/.matplotlib`,
 and add the following content in this file:
@@ -467,6 +462,13 @@ class PlotFigure:
 def main():
     '''test run
     '''
+    if sys.platform.startswith('darwin'):
+        matplotlib.use("WXAgg")
+    elif sys.platform.startswith('win32'):
+        matplotlib.use("TKAgg")
+    else:
+        pass
+
     # # test data for plot_MI_plane
     # x = {0: np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ]),
     #      1: np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])

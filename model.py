@@ -42,7 +42,7 @@ class Model(nn.Module):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( ActivX_dict[name](Vmax = None, Vmin = 0, slope = 1, dispX = 0) )
+                    self.A.append( ActivX_dict[name](Vmax = 1, Vmin = -1, slope = 1, dispX = 0) )
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:
