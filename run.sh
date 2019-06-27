@@ -26,12 +26,12 @@ echo "run for: slope = $slope, dispX = $dispX"
 
 $PYTHON IBnet.py \
 --experiment_name test-tanhx-slope1_0-dispX0_0 \
---max_epoch 8000 \
+--max_epoch 100 \
 --activation tanhx \
 --Vmax 1.0 \
 --Vmin 0.0 \
 --slope $slope \
---dispX $dispX \
+--dispX $dispX
 
 done
 

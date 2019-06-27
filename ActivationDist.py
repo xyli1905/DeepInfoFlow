@@ -15,15 +15,23 @@ import matplotlib.pyplot as plt
 import moviepy.editor as mpy
 
 class ActivationDist():
-    def __init__(self):
+    def __init__(self, model_name = None, save_root = None):
         load_config = JsonParser() # training args
-        self.model_name = None
+        # model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
+        # save_root = './results'
 
-        # self.model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
-        # self.path = os.path.join('./results', self.model_name)
+        if model_name == None:
+            if save_root == None:
+                self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
+            else:
+                self.model_name, self.path = utils.find_newest_model(save_root)
+        else:
+            self.model_name = model_name
+            if save_root == None:
+                self.path = os.path.join('./results', self.model_name)
+            else:
+                self.path = os.path.join(save_root, self.model_name)
 
-        if self.model_name == None:
-            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
         print(self.model_name)
 
         self._opt = load_config.read_json_as_argparse(self.path) # load training args
