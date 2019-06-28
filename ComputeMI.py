@@ -1,9 +1,9 @@
 import torch
 import numpy as np
-import measure
+import MImeasure
 import utils
 import os
-from model import Model
+from networks import DenseNet
 from json_parser import JsonParser
 import time
 from plot_utils import PlotFigure
@@ -56,14 +56,14 @@ class ComputeMI:
             raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
 
         # get model
-        self._model = Model(opt = self._opt, train = False)
+        self._model = DenseNet(opt = self._opt, train = False)
         
         # get measure
         self.measure_type = measure_type
         if measure_type == 'EVKL':
-            self.measure = measure.EVKL() # our new measure
+            self.measure = MImeasure.EVKL() # our new measure
         elif measure_type == 'kde':
-            self.measure = measure.kde()
+            self.measure = MImeasure.kde()
 
     def eval(self):
         if self.measure_type == 'EVKL':

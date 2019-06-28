@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from model import Model
+from networks import DenseNet
 from base_options import BaseOption
 from json_parser import JsonParser
 from logger import *
@@ -76,7 +76,7 @@ class SaveActivations:
                 nn.init.xavier_normal_(m.weight.data)
                 nn.init.constant_(m.bias.data, 0)
         # model construction
-        self._model = Model(opt = self._opt)
+        self._model = DenseNet(opt = self._opt)
         self._model.apply(weights_init)
         # optimizer
         # self._optimizer = optim.Adam(self._model.parameters(), lr=self._opt.lr)

@@ -9,6 +9,7 @@ We follow the idea from [ibsgd](https://github.com/artemyk/ibsgd) project. we re
 
 ```
 numpy
+scipy
 matplotlib
 pytorch
 torchvision

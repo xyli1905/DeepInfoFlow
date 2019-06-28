@@ -1,15 +1,10 @@
 import torch
 import numpy as np
-import measure
 import utils
 import os
-from model import Model
+from networks import DenseNet
 from json_parser import JsonParser
 import time
-from plot_utils import PlotFigure
-import sys
-import threading
-import pickle
 from plot_utils import PlotFigure
 
 class HiddenDist():
@@ -43,7 +38,7 @@ class HiddenDist():
         dataset = torch.utils.data.ConcatDataset([train_data, test_data])
         self._test_set = torch.utils.data.DataLoader(dataset, batch_size = self._opt.batch_size, shuffle = False, num_workers = 0)
 
-        self._model = Model(opt = self._opt, train = False)
+        self._model = DenseNet(opt = self._opt, train = False)
 
     def CalculateDist(self):
         model_path = os.path.join(self.path, 'models')
