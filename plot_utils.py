@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from cycler import cycler
+import moviepy.editor as mpy
 import numpy as np
 import pickle
 import datetime
@@ -20,7 +21,7 @@ see for reference: https://github.com/matplotlib/matplotlib/issues/13414
 '''
 
 class PlotFigure:
-    def __init__(self, opt, model_name=None):
+    def __init__(self, opt, model_name=None, IS_HIDDEN_DIST=False):
         self.name = 'Plot_Utils'
         self._opt = opt
         self._results_root = './results'
@@ -44,6 +45,11 @@ class PlotFigure:
         self.model_plot_data_path = os.path.join(tmp_dir, 'plots_data')
         if not os.path.exists(self.model_plot_data_path):
             os.mkdir(self.model_plot_data_path)
+        
+        if IS_HIDDEN_DIST:
+            self.hidden_dist_dir = os.path.join(self.model_plot_fig_path, 'HiddenOutDist')
+            if not os.path.exists(self.hidden_dist_dir):
+                os.makedirs(self.hidden_dist_dir)
 
 ##NOTE old code for plot MI plane
     # def plot_MI_plane_1(self, MI_X_T, MI_Y_T):
@@ -386,6 +392,40 @@ class PlotFigure:
 
         # set dir for mean_std; saving figure
         self._save_fig(fig, 'Acc_and_Loss')
+
+
+    def plot_hidden_dist(self, epoch, layer_activity):
+        Nlayers = len(layer_activity)
+
+        fig = plt.figure(figsize=(16,4*Nlayers), constrained_layout=True)
+        gs = GridSpec(Nlayers, 1, figure=fig, wspace=0.0, hspace=0.3)
+
+        for i in range(Nlayers):
+            data = layer_activity[i].reshape(-1)
+            ax = fig.add_subplot(gs[i, 0])
+            ax.hist(data, bins = 50)
+            ax.set_xlabel('hidden layer outputs value', fontsize = 24)
+            ax.set_ylabel('counts', fontsize = 24)
+            ax.tick_params(labelsize = 16)
+            if i != Nlayers - 1:
+                ax.set_xlim(left=self._opt.Vmin, right=self._opt.Vmax)
+
+        fig.suptitle(f'epoch: {str(epoch)} distribution of hidden layer outputs', fontsize=28)
+        fig.subplots_adjust(left = 0.1, bottom=0.05, top=0.95, right=0.95)
+
+        fname = os.path.join(self.hidden_dist_dir, str(epoch) + '.png')
+        fig.savefig(fname, format='png')
+    
+    def generate_hidden_dist_gif(self):
+        file_names = [fn for fn in os.listdir(self.hidden_dist_dir) if fn.endswith('.png')]
+        if len(file_names) == 0:
+            raise ValueError('not enough data')
+        list.sort(file_names, key=lambda x: int(x.split('.')[0]))
+        file_names = [os.path.join(self.hidden_dist_dir, fn) for fn in file_names]
+        clip = mpy.ImageSequenceClip(file_names, fps=2)
+        filename = os.path.join(self.model_plot_fig_path, "Hidden_Output_Distribution.gif")
+        clip.write_gif(filename, fps=2)
+
 
 
     def _save_fig(self, fig, fig_name):

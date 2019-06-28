@@ -10,11 +10,9 @@ from plot_utils import PlotFigure
 import sys
 import threading
 import pickle
-import matplotlib
-import matplotlib.pyplot as plt
-import moviepy.editor as mpy
+from plot_utils import PlotFigure
 
-class ActivationDist():
+class HiddenDist():
     def __init__(self, model_name = None, save_root = None):
         load_config = JsonParser() # training args
         # model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
@@ -39,10 +37,6 @@ class ActivationDist():
         # force the batch size to 1 for calculation convinience
         self._opt.batch_size = 512
 
-        self.saving_dir = os.path.join(self.path, 'activationDistribution')
-        if not os.path.exists(self.saving_dir):
-            os.makedirs(self.saving_dir)
-
         train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
         test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
         # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
@@ -55,8 +49,8 @@ class ActivationDist():
         model_path = os.path.join(self.path, 'models')
         epoch_files = os.listdir(model_path)
 
-        # figure, axs = plt.subplots(1, 6, sharey=True, tight_layout=True)
-        # axs = axs.flatten()
+        # initialize plotter
+        plotter = PlotFigure(self._opt, self.model_name, IS_HIDDEN_DIST=True)
 
         for epoch_file in epoch_files:
             if not epoch_file.endswith('.pth'):
@@ -82,35 +76,18 @@ class ActivationDist():
                 outputs = self._model(inputs)
                 # for each layer activation add to container
                 for i in range(len(outputs)):
-                    data = outputs[i]
+                    data = outputs[i].detach().numpy()
                     if len(layer_activity) < len(outputs):
                         layer_activity.append(data)
                     else:
-                        layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
+                        # layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
+                        layer_activity[i] = np.concatenate((layer_activity[i], data), axis = 0)
 
-            plt.subplots_adjust(top=0.5)
-            figure, axs = plt.subplots(6, 1, sharex=False, sharey = True)
-            axs = axs.flatten()
-            figure.suptitle('epoch: ' + str(epoch) + 'distribution of hidden layer outputs', fontsize=16, verticalalignment = "top")
-            plt.xlabel('hidden layer outputs value')
-            for i in range(len(layer_activity)):
-                data = layer_activity[i].reshape(-1)
-                data = data.detach().numpy()
-                axs[i].hist(data, bins = 50)
-            fname =  str(epoch) + '.png'
-            fname = os.path.join(self.saving_dir, fname)
-            figure.savefig(fname, format='png')
-            plt.close(figure)
-        self.GenerateGIF()
+            # plot hidden output distribution for each epoch
+            plotter.plot_hidden_dist(epoch, layer_activity)
 
-    def GenerateGIF(self):
-        file_names = [fn for fn in os.listdir(self.saving_dir) if fn.endswith('.png')]
-        list.sort(file_names, key=lambda x: int(x.split('.')[0]))
-        file_names = [os.path.join(self.saving_dir, fn) for fn in file_names]
-        clip = mpy.ImageSequenceClip(file_names, fps=2)
-        filename = os.path.join(self.saving_dir, "Activation.gif")
-        clip.write_gif(filename, fps=2)
-
+        # generate gif for hidden output distribution
+        plotter.generate_hidden_dist_gif()
 
 
     def needLog(self, epoch):
@@ -121,6 +98,21 @@ class ActivationDist():
                 return epoch % self._opt.log_frequency[idx] == 0
 
 if __name__ == "__main__":
-    act = ActivationDist()
-    act.CalculateDist()
+    # act = HiddenDist()
+    # act.CalculateDist()
+
+    save_root = './results'
+    model = 'IBNet_test_new_opt_tanhx_Time_06_27_18_24'
+    # save_root = '/Users/xyli1905/Desktop/exp_ADAM'
+    # model = None
+
+    if model == None:
+        for d in os.listdir(save_root):
+            bd = os.path.join(save_root, d)
+            if os.path.isdir(bd):
+                hid = HiddenDist(model_name = d, save_root = save_root)
+                hid.CalculateDist()
+    else:
+        hid = HiddenDist(model_name = model, save_root = save_root)
+        hid.CalculateDist()
 

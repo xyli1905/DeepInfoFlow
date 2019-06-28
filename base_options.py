@@ -15,8 +15,8 @@ class BaseOption:
 
         self._parser.add_argument('--activation', type=str, default='tanhx', help='activation method')
         #below four only apply to 'relux' and 'tanhx' cases
-        self._parser.add_argument('--Vmax', type=float, default=1.0, help='Max Value for activationX')
-        self._parser.add_argument('--Vmin', type=float, default=-1.0, help='Min Value for activationX')
+        self._parser.add_argument('--Vmax', type=float, default=None, help='Max Value for activationX')
+        self._parser.add_argument('--Vmin', type=float, default=None, help='Min Value for activationX')
         self._parser.add_argument('--slope', type=float, default=1.0, help='slope for activationX')
         self._parser.add_argument('--dispX', type=float, default=0.0, help='x displacement for activationX')
 
