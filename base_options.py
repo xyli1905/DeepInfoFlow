@@ -44,12 +44,7 @@ class BaseOption:
         self._parser.add_argument('--chkp_dir', type=str, default='./checkpoints', help='directory storing trained models and optimizers')
         self._parser.add_argument('--data_dir', type=str, default='./data_proc/processed_data', help='directory storing preprocessed data')
         self._parser.add_argument('--plot_dir', type=str, default='./plots', help='directory to store outputs of information plane plots')
-        # self._parser.add_argument('--results_dir', type=str, default='./results', help='directory to store outputs of evaluation of a model')
 
-
-        # # general options for training  (same for E and C)
-        # self._parser.add_argument('--is_train', type=self.boolean_string, default=True, help='flag showing if the model is in training')
-        # self._parser.add_argument('--is_debug', type=self.boolean_string, default=False, help='flags for debug mode')
 
         self._initialized = True
 

@@ -16,7 +16,7 @@ import datetime
 import time
 
 
-class SaveActivations:
+class IBmodel:
     def __init__(self):
         self._opt = BaseOption().parse()
         # check device
@@ -241,7 +241,7 @@ class SaveActivations:
         return fullpath
 
 if __name__ == "__main__":
-    t = SaveActivations()
+    t = IBmodel()
     t._update_opt({})
     t.training_model()
     

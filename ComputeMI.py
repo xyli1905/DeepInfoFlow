@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import MImeasure
+import measure_utils as measure
 import utils
 import os
 from networks import DenseNet
@@ -60,10 +60,6 @@ class ComputeMI:
         
         # get measure
         self.measure_type = measure_type
-        if measure_type == 'EVKL':
-            self.measure = MImeasure.EVKL() # our new measure
-        elif measure_type == 'kde':
-            self.measure = MImeasure.kde()
 
     def eval(self):
         if self.measure_type == 'EVKL':
@@ -211,14 +207,14 @@ class ComputeMI:
             sample_XT_pair = np.concatenate((XT_X, XT_T), axis = 1)
             sample_X_and_T = np.concatenate((X_XT, T_XT), axis = 1)
 
-            IX = self.measure.MI_estimator(sample_XT_pair, sample_X_and_T)
+            IX = measure.MI_estimator(sample_XT_pair, sample_X_and_T)
             avg_IX += IX
 
             # MI for Y and T: I(Y;T) = Dkl(P(Y,T)||P(Y)P(T))
             sample_YT_pair = np.concatenate((YT_Y, YT_T), axis = 1)
             sample_Y_and_T = np.concatenate((Y_YT, T_YT), axis = 1)
 
-            IY = self.measure.MI_estimator(sample_YT_pair, sample_Y_and_T)
+            IY = measure.MI_estimator(sample_YT_pair, sample_Y_and_T)
             avg_IY += IY
 
         return avg_IX / Nrepeats, avg_IY / Nrepeats
@@ -280,8 +276,8 @@ class ComputeMI:
             IX_epoch = []
             IY_epoch = []
             for layer in layer_activity:
-                upper = self.measure.entropy_estimator_kl(layer, 0.001)
-                hM_given_X = self.measure.kde_condentropy(layer, 0.001)
+                upper = measure.entropy_estimator_kl(layer, 0.001)
+                hM_given_X = measure.kde_condentropy(layer, 0.001)
 
                 mutual_info_X = upper - hM_given_X # IX
                 IX_epoch.append(mutual_info_X.item() * nats2bits)
@@ -289,7 +285,7 @@ class ComputeMI:
                 # for each label y
                 hM_given_Y_upper=0.
                 for i, key in enumerate(sorted(saved_labelixs.keys())):
-                    hcond_upper = self.measure.entropy_estimator_kl(layer[saved_labelixs[key]], 0.001)
+                    hcond_upper = measure.entropy_estimator_kl(layer[saved_labelixs[key]], 0.001)
                     hM_given_Y_upper += label_probs[i] * hcond_upper 
 
                 mutual_info_Y = upper - hM_given_Y_upper

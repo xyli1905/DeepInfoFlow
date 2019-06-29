@@ -2,54 +2,68 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-import copy
 
 # --------------------------- #
 # Classes for Networks        #
 # --------------------------- #
+class BaseNetwork(nn.Module):
+    def __init__(self, opt, train = True):
+        super(BaseNetwork, self).__init__()
+        self._name = 'base network'
+        self._opt = opt
+        self._train = train
+
+        # dictionary of available activations
+        #NOTE the use of eval in DenseNet
+        self.activ_dict = {'tanh': 'nn.Tanh()', 'relu': 'nn.ReLU()', 'relu6': 'nn.ReLU6()', 
+                           'elu': 'nn.ELU()', 'prelu': 'nn.PReLU()', 'leakyRelu': 'nn.LeakyReLU()', 
+                           'sigmoid': 'nn.Sigmoid()', 'softplus': 'nn.Softplus()'}
+
+        self.ActivX_dict = {'relux': 'ReLUX', 'tanhx': 'TanhX'}
+
+        self.construct_model()
+
+    def construct_model(self):
+        raise NotImplementedError('not defined in BaseNetwork')
+
+    def forward(self, input):
+        raise NotImplementedError('not defined in BaseNetwork')
 
 # Dense net or fully-connected net
-class DenseNet(nn.Module):
+class DenseNet(BaseNetwork):
     # def __init__(self, activation , dims, train = True):
     def __init__(self, opt, train = True):
-        super(DenseNet,self).__init__()
-        self._opt = opt
+        super(DenseNet, self).__init__(opt, train)
         self.layer_dims = self._opt.layer_dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
-        self._train = train
-        self.construct_model_by_name(self._opt.activation)
 
-
-    def construct_model_by_name(self, name):
+    def construct_model(self):
+        name = self._opt.activation
         depth = len(self.layer_dims) - 1
         numOfActiv = depth - 1
 
-        activ_dict = {'tanh':nn.Tanh(), 'relu': nn.ReLU(), 'relu6': nn.ReLU6(), 
-                      'elu': nn.ELU(), 'prelu': nn.PReLU(), 'leakyRelu': nn.LeakyReLU(), 
-                      'sigmoid': nn.Sigmoid(), 'softplus': nn.Softplus()}
-
-        ActivX_dict = {'relux': ReLUX, 'tanhx': TanhX}
-
-        if name in activ_dict.keys():
+        if name in self.activ_dict.keys():
   
             print("\rusing buildin activation")
 
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( activ_dict[name] )
+                    self.A.append( eval(self.activ_dict[name]) )
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
-        elif name in ActivX_dict.keys():
+        elif name in self.ActivX_dict.keys():
 
             print("\rusing activationX")
 
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( ActivX_dict[name](Vmax = self._opt.Vmax, Vmin = self._opt.Vmin, 
-                                                     slope = self._opt.slope, dispX = self._opt.dispX))
+                    self.A.append( eval(self.ActivX_dict[name])(Vmax = self._opt.Vmax, 
+                                                                Vmin = self._opt.Vmin, 
+                                                                slope = self._opt.slope, 
+                                                                dispX = self._opt.dispX))
                 self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
 
         else:
