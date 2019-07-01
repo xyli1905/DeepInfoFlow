@@ -20,5 +20,5 @@ if __name__ == "__main__":
     c = child()
 
     c.F('test')
-
+    print("test")
     b.F()
