@@ -46,7 +46,7 @@ class DataProvider:
         self.test_set = None
         if self.dataset_name == 'IBNet':
             self.train_set = NumericalDataset('./datasets/IB_data_2017_12_21_16_51_3_275766.npz', train=True)
-            self.test_set = NumericalDataset('./datasets/IB_data_2017_12_21_16_51_3_275766.npz', train=True)
+            self.test_set = NumericalDataset('./datasets/IB_data_2017_12_21_16_51_3_275766.npz', train=False)
         elif self.dataset_name == 'MNIST':
             self.train_set = data.MNIST(root='./datasets', train=True, transform = transforms.ToTensor(), target_transform = None, download = True)
             self.test_set = data.MNIST(root='./datasets', train=False, transform = transforms.ToTensor(), target_transform = None, download = True)
@@ -62,17 +62,14 @@ class DataProvider:
 
     def get_full_data(self):
         full_data = torch.utils.data.ConcatDataset([self.test_set, self.train_set])
+        full_data = DataLoader(full_data, batch_size = self.batch_size, shuffle = self.shuffle, num_workers = self.num_workers)
         return full_data
 
-# if __name__ == "__main__":
-#     test = DataProvider(dataset_name = "MNIST", batch_size = 2, num_workers = 0, shuffle = True)
-#     train_d = test.get_full_data()
+if __name__ == "__main__":
+    test = DataProvider(dataset_name = "IBNet", batch_size = 1, num_workers = 0, shuffle = True)
+    train_d= test.get_full_data()
+    print(len(train_d))
 
-#     for i, (inputs, labels) in enumerate(train_d):
-#         print(inputs)
-#         print(labels)
-#         print(i)
-#         break
 
 
 
