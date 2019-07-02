@@ -34,13 +34,12 @@ class DenseNet(BaseNetwork):
     # def __init__(self, activation , dims, train = True):
     def __init__(self, opt, train = True):
         super(DenseNet, self).__init__(opt, train)
-        self.layer_dims = self._opt.layer_dims
         self.D = nn.ModuleList([])
         self.A = nn.ModuleList([])
 
     def construct_model(self):
         name = self._opt.activation
-        depth = len(self.layer_dims) - 1
+        depth = len(self._opt.layer_dims) - 1
         numOfActiv = depth - 1
 
         if name in self.activ_dict.keys():
@@ -51,7 +50,7 @@ class DenseNet(BaseNetwork):
                 if numOfActiv > 0:
                     numOfActiv -= 1
                     self.A.append( eval(self.activ_dict[name]) )
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+                self.D.append(nn.Linear(self._opt.layer_dims[i], self._opt.layer_dims[i + 1]))
 
         elif name in self.ActivX_dict.keys():
 
@@ -64,7 +63,7 @@ class DenseNet(BaseNetwork):
                                                                 Vmin = self._opt.Vmin, 
                                                                 slope = self._opt.slope, 
                                                                 dispX = self._opt.dispX))
-                self.D.append(nn.Linear(self.layer_dims[i], self.layer_dims[i + 1]))
+                self.D.append(nn.Linear(self._opt.layer_dims[i], self._opt.layer_dims[i + 1]))
 
         else:
             raise RuntimeError('Do not have {activation} activation function please check your options'.format(activation = name))
@@ -75,7 +74,7 @@ class DenseNet(BaseNetwork):
             print('dsfds')
             x = x.reshape(x.shape[0], -1)
         if self._train:
-            for i in range(len(self.layer_dims) - 1):
+            for i in range(len(self._opt.layer_dims) - 1):
                 dense = self.D[i]
                 x = dense(x)
                 if i < len(self.A):
@@ -84,7 +83,7 @@ class DenseNet(BaseNetwork):
             return x
         else:
             outputs = []
-            for i in range(len(self.layer_dims) - 1):
+            for i in range(len(self._opt.layer_dims) - 1):
                 dense = self.D[i]
                 x = dense(x)
                 if i < len(self.A):
