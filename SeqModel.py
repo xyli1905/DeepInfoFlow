@@ -19,7 +19,7 @@ class SeqModel(BaseModel):
         self._network.eval()
 
 
-    def set_network(self, network):
+    def set_network(self):
         '''
         Densnet 
         '''
@@ -103,12 +103,13 @@ class SeqModel(BaseModel):
     def save_model(self, i_epoch):
         self._save_model(self._network, self._optimizer, i_epoch)
 
-    def load_model(self, epoch_file, NEED_LOG=False)->bool:
+    def load_model(self, epoch_file, CKECK_LOG=False):
         '''
-        true: load successfuly
-        false: load fail
+        return load_indicator, a dict with keys NEED_LOG and epoch
+        NEED_LOG -> bool
+        epoch -> int
         '''
-        return self._load_model(self._network, self._optimizer, epoch_file, NEED_LOG)
+        return self._load_model(self._network, self._optimizer, epoch_file, CKECK_LOG)
 
 
 

@@ -182,16 +182,14 @@ class BaseModel:
         '''
         raise NotImplementedError('load_model should be specified in individual model')
 
-    def _load_model(self, network, optimizer, epoch_file, NEED_LOG)->bool:
-        '''
-        true: load successfuly
-        false: load fail
-        '''
+    def _load_model(self, network, optimizer, epoch_file, CKECK_LOG):
         ckpt = torch.load(os.path.join(self._model_path, epoch_file))
         epoch = ckpt['epoch']
+        load_indicator = {'NEED_LOG': True, 'epoch': epoch}
 
-        if (NEED_LOG) and (not self.need_log(epoch)):
-            return False
+        if (CKECK_LOG) and (not self.need_log(epoch)):
+            load_indicator['NEED_LOG'] = False
+            return load_indicator
 
         # load network epoch weight
         network.load_state_dict(ckpt['network_state_dict'])
@@ -201,7 +199,7 @@ class BaseModel:
             optimizer.load_state_dict(ckpt['optimizer_state_dict'])
 
         self._model_loaded = True
-        return True
+        return load_indicator
 
 
     def _get_option(self, mpath):
