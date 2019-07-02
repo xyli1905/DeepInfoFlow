@@ -9,11 +9,11 @@ class cfun:
 
 
 if __name__ == "__main__":
-    D = {1: "cfun", 2:"bfun"}
+    D = {1: "cfun", 2:cfun}
 
     L = []
     L.append(eval(D[1])(p=0))
-    L.append(eval(D[1])(p=5))
+    L.append(D[2](p=5))
 
     L[0].add_one()
     print(L[0].param, L[1].param)

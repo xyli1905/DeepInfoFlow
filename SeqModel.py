@@ -103,8 +103,12 @@ class SeqModel(BaseModel):
     def save_model(self, i_epoch):
         self._save_model(self._network, self._optimizer, i_epoch)
 
-    def load_model(self, epoch_file):
-        self._load_model(self._network, self._optimizer, epoch_file)
+    def load_model(self, epoch_file, NEED_LOG=False)->bool:
+        '''
+        true: load successfuly
+        false: load fail
+        '''
+        return self._load_model(self._network, self._optimizer, epoch_file, NEED_LOG)
 
 
 

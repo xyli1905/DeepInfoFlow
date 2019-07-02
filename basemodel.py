@@ -182,9 +182,16 @@ class BaseModel:
         '''
         raise NotImplementedError('load_model should be specified in individual model')
 
-    def _load_model(self, network, optimizer, epoch_file):
+    def _load_model(self, network, optimizer, epoch_file, NEED_LOG)->bool:
+        '''
+        true: load successfuly
+        false: load fail
+        '''
         ckpt = torch.load(os.path.join(self._model_path, epoch_file))
         epoch = ckpt['epoch']
+
+        if (NEED_LOG) and (not self.need_log(epoch)):
+            return False
 
         # load network epoch weight
         network.load_state_dict(ckpt['network_state_dict'])
@@ -194,6 +201,7 @@ class BaseModel:
             optimizer.load_state_dict(ckpt['optimizer_state_dict'])
 
         self._model_loaded = True
+        return True
 
 
     def _get_option(self, mpath):
@@ -213,7 +221,7 @@ class BaseModel:
 
     def _load_json_as_argparse(self, mpath):
         try:
-            json_dir = os.path.join(self._path_to_dir, "opt.json")
+            json_dir = os.path.join(mpath, "opt.json")
             js = open(json_dir).read()
             data = json.loads(js)
             opt = argparse.Namespace()
