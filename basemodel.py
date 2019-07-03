@@ -87,8 +87,8 @@ class BaseModel:
         self._logger = Logger(opt = self._opt, plot_name = self._model_name)
 
         print('Begin training...')
+        t_begin = time.time()
         for i_epoch in range(self._opt.max_epoch):
-            t_begin = time.time()
 
             if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                 print('\n{}'.format(11*'------'))
@@ -98,16 +98,16 @@ class BaseModel:
 
             self.train_epoch(i_epoch, probe)
 
-            probe.monitor_epoch(i_epoch, mode='train')
-            self._logger.log_acc_loss(i_epoch, 'train', acc=probe.epoch_acc, loss=probe.epoch_loss)
+            probe.monitor_epoch(i_epoch, mode='train') #place before _logger to set avg_acc/avg_loss
+            self._logger.log_acc_loss(i_epoch, 'train', acc=probe.avg_acc, loss=probe.avg_loss)
             
             # test one epoch
             probe.initialize()
 
             self.test_epoch(i_epoch, probe)
 
-            probe.monitor_epoch(i_epoch, mode='test')
-            self._logger.log_acc_loss(i_epoch, 'test', acc=probe.epoch_acc)
+            probe.monitor_epoch(i_epoch, mode='test') #place before _logger to set avg_acc/avg_loss
+            self._logger.log_acc_loss(i_epoch, 'test', acc=probe.avg_acc)
 
             # update log for selected epoches
             if self.need_log(i_epoch):
@@ -117,6 +117,7 @@ class BaseModel:
                 print('{}'.format(11*'------'))
                 t_end = time.time()
                 print('time cost for this output period: {:.3f}(s)'.format(t_end - t_begin))
+                t_begin = time.time()
 
             # saving model for each epoch
             self.save_model(i_epoch)
@@ -245,6 +246,9 @@ class Monitor:
         self._test_size = test_size
         self._save_step = save_step
 
+        self.avg_acc  = 0.
+        self.avg_loss = 0.
+
         self.format_train = "\repoch:{epoch} Loss:{loss:.5e} Acc:{acc:.5f}% " +\
                             "numacc:{num:.0f}/{tnum:.0f}"
         self.format_test  = "\repoch:{epoch} Acc:{acc:.5f}% " +\
@@ -262,19 +266,19 @@ class Monitor:
     
     def monitor_epoch(self, i_epoch, mode='train'):
         if mode == 'train':
-            avg_acc  = self.epoch_acc / float(self._train_size)
-            avg_loss = self.epoch_loss / float(self._train_size)
+            self.avg_acc  = self.epoch_acc / float(self._train_size)
+            self.avg_loss = self.epoch_loss / float(self._train_size)
             if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                 print(self.format_train.format(epoch=i_epoch+1,
-                                               loss=avg_loss,
-                                               acc=avg_acc*100.,
+                                               loss=self.avg_loss,
+                                               acc=self.avg_acc*100.,
                                                num=self.epoch_acc,
                                                tnum=self._train_size))
         elif mode == 'test':
-            avg_acc = self.epoch_acc / float(self._test_size)
+            self.avg_acc = self.epoch_acc / float(self._test_size)
             if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                 print(self.format_test.format(epoch=i_epoch+1,
-                                              acc=avg_acc*100.,
+                                              acc=self.avg_acc*100.,
                                               num=self.epoch_acc,
                                               tnum=self._test_size))
 

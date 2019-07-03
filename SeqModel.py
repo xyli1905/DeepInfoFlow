@@ -23,7 +23,14 @@ class SeqModel(BaseModel):
         '''
         Densnet 
         '''
+        # weight initialization
+        def weights_init(m):
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight.data)
+                nn.init.constant_(m.bias.data, 0)
+
         self._network = DenseNet(self._opt, train=self._is_train)
+        self._network.apply(weights_init)
 
     def set_optimizer(self):
         '''
