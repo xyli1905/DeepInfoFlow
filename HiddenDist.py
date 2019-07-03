@@ -31,8 +31,8 @@ class HiddenDist(NumericalExperiment):
         pass
 
     def CalculateDist(self):
-        model_path = os.path.join(self.model_path, 'models')
-        epoch_files = os.listdir(model_path)
+        ckpt_path = os.path.join(self.model_path, self._opt.ckpt_dir)
+        epoch_files = os.listdir(ckpt_path)
 
         # initialize plotter
         plotter = PlotFigure(self._opt, self.model_name, IS_HIDDEN_DIST=True)

@@ -15,6 +15,9 @@ from numexp import NumericalExperiment
 class ComputeMI(NumericalExperiment):
     def __init__(self, model_name = None, save_root = None, measure_type = 'EVKL'):
         super(ComputeMI, self).__init__(model_name, save_root)
+        # ------------------------------------------------------------------ #
+        # self.model_path and self.model_name from NumericalExperiment class #
+        # ------------------------------------------------------------------ #
         self.progress_bar = 0
 
         # set model
@@ -79,8 +82,6 @@ class ComputeMI(NumericalExperiment):
     def EVMethod(self):
         start = time.time()
 
-        progress = 0
-
         IX_dic = {}
         IY_dic = {}
 
@@ -89,14 +90,20 @@ class ComputeMI(NumericalExperiment):
         random_indexes = self.random_index((Nrepeats, 1000))
 
         print("len dataset : ", len(self.dataset.dataset))
-        model_save_path = os.path.join(self.model_path, 'models')
-        epoch_files = os.listdir(model_save_path)
-        for epoch_file in epoch_files:
-            # initial progress record
-            progress += 1
+        ckpt_path = os.path.join(self.model_path, self._opt.ckpt_dir)
+        epoch_files = os.listdir(ckpt_path)
+        num_epoch_files = len(epoch_files)
 
-            self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
-            print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)
+        progress = 0
+        for epoch_file in epoch_files:
+            if not epoch_file.endswith('.pth'):
+                continue
+
+            # running progress record
+            progress += 1
+            progress_ratio = float(progress / num_epoch_files) * 100.0
+            # self.progress_bar = int(progress_ratio)
+            print(f"\rprogress : {progress_ratio:.4f}%",end = "", flush = True)
 
 
             # load model epoch weight
@@ -190,11 +197,13 @@ class ComputeMI(NumericalExperiment):
 
 
     def kdeMethod(self):
+        start = time.time()
+        
         saved_labelixs, label_probs = self.get_saved_labelixs_and_labelprobs()
 
-        model_save_path = os.path.join(self.model_path, 'models')
-        epoch_files = os.listdir(model_save_path)
-        start = time.time()
+        ckpt_path = os.path.join(self.model_path, self._opt.ckpt_dir)
+        epoch_files = os.listdir(ckpt_path)
+        num_epoch_files = len(epoch_files)
 
         IX = {}
         IY = {}
@@ -203,11 +212,13 @@ class ComputeMI(NumericalExperiment):
 
         progress = 0
         for epoch_file in epoch_files:
-            progress += 1
-            self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
-            print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)
             if not epoch_file.endswith('.pth'):
                 continue
+
+            progress += 1
+            progress_ratio = float(progress / num_epoch_files) * 100.0
+            # self.progress_bar = int(progress_ratio)
+            print(f"\rprogress : {progress_ratio:.4f}%",end = "", flush = True)
             
             # load model epoch weight
             indicators = self._model.load_model(epoch_file, CKECK_LOG=True)
@@ -270,13 +281,6 @@ class ComputeMI(NumericalExperiment):
         print("total time cost : ", end - start)
 
 
-    def needLog(self, epoch):
-        # Only log activity for some epochs.  Mainly this is to make things run faster.
-        assert len(self._opt.log_seperator) == len(self._opt.log_frequency), "sha bi"
-        for idx, val in enumerate(self._opt.log_seperator):
-            if epoch < val:
-                return epoch % self._opt.log_frequency[idx] == 0
-
 
 if __name__ == "__main__":
 
@@ -328,17 +332,17 @@ if __name__ == "__main__":
     #    3408,   42, 3867, 3815, 1551, 3892, 3687, 2182, 3896, 3499, 3610,
     #    2595])
 
-    def check(a, b, c, d):
-        a = list(a)
-        b = list(b)
-        c = list(c)
-        d = list(d)
+    # def check(a, b, c, d):
+    #     a = list(a)
+    #     b = list(b)
+    #     c = list(c)
+    #     d = list(d)
 
-        repeat_a = [(i, j) for i in range(len(a)) for j in range(len(a)) if a[i] == a[j] and i < j]
-        repeat_b = [(i, j) for i in range(len(b)) for j in range(len(b)) if b[i] == b[j] and i < j]
-        repeat_c = [(i, j) for i in range(len(c)) for j in range(len(c)) if c[i] == c[j] and i < j]
-        repeat_d = [(i, j) for i in range(len(d)) for j in range(len(d)) if d[i] == d[j] and i < j]
-        print (repeat_a)
-        print (repeat_b)
-        print (repeat_c)
-        print (repeat_d)
+    #     repeat_a = [(i, j) for i in range(len(a)) for j in range(len(a)) if a[i] == a[j] and i < j]
+    #     repeat_b = [(i, j) for i in range(len(b)) for j in range(len(b)) if b[i] == b[j] and i < j]
+    #     repeat_c = [(i, j) for i in range(len(c)) for j in range(len(c)) if c[i] == c[j] and i < j]
+    #     repeat_d = [(i, j) for i in range(len(d)) for j in range(len(d)) if d[i] == d[j] and i < j]
+    #     print (repeat_a)
+    #     print (repeat_b)
+    #     print (repeat_c)
+    #     print (repeat_d)

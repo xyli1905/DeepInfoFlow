@@ -144,22 +144,22 @@ class BaseModel:
     def _set_model_directory(self, mpath):
         if mpath == None:
             # construct saving directory
-            save_root_dir = self._opt.save_root_dir
+            save_root = self._opt.save_root
             dataset = self._opt.dataset
             time = datetime.datetime.today().strftime('%m_%d_%H_%M')
             self._model_name = f"{dataset}_{self._opt.experiment_name}_{self._opt.activation}_Time_{time}"
 
-            self._path_to_dir = os.path.join(save_root_dir, self._model_name)
+            self._path_to_dir = os.path.join(save_root, self._model_name)
             if not os.path.exists(self._path_to_dir):
                 os.makedirs(self._path_to_dir)
 
-            self._model_path = os.path.join(self._path_to_dir, "models")
+            self._model_path = os.path.join(self._path_to_dir, self._opt.ckpt_dir)
             if not os.path.exists(self._model_path):
                 os.makedirs(self._model_path)
         else:
             # set existed model path
             self._path_to_dir = mpath
-            self._model_path = os.path.join(self._path_to_dir, "models")
+            self._model_path = os.path.join(self._path_to_dir, self._opt.ckpt_dir)#self._opt.ckpt_dir='models'
         
         print(self._path_to_dir)
 

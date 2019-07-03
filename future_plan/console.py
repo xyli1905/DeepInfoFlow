@@ -166,7 +166,7 @@ class Console(QWidget):
         test.training_model()     
 
     def showImg(self):
-        img_path = os.path.join(self.opt.plot_dir, self.opt.model_name, self.opt.timestamp, self.opt.type, "test.jpg")
+        img_path = os.path.join(self.opt.plot_path, self.opt.model_name, self.opt.timestamp, self.opt.type, "test.jpg")
         if os.path.exists(img_path):
             src = cv.imread(img_path)   
             cv.namedWindow(self.opt.type, cv.WINDOW_AUTOSIZE)

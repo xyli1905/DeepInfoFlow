@@ -24,19 +24,19 @@ class PlotFigure:
     def __init__(self, opt, model_name=None, IS_HIDDEN_DIST=False):
         self.name = 'Plot_Utils'
         self._opt = opt
-        self._results_root = './results'
+        self._save_root = './results'
 
         # NOTE we save figures in two places: the plot_root and results/model_path
         # check existence of plot_root
-        self.plot_dir = opt.plot_dir
-        if not os.path.exists(opt.plot_dir):
-            os.mkdir(opt.plot_dir)
+        self.plot_path = opt.plot_path
+        if not os.path.exists(opt.plot_path):
+            os.mkdir(opt.plot_path)
 
         if model_name == None:
-            self.model_name, tmp_dir = utils.find_newest_model(self._results_root)
+            self.model_name, tmp_dir = utils.find_newest_model(self._save_root)
         else:
             self.model_name = model_name
-            tmp_dir = os.path.join(self._results_root, model_name)
+            tmp_dir = os.path.join(self._save_root, model_name)
 
         self.model_plot_fig_path = os.path.join(tmp_dir, 'plots_fig')
         if not os.path.exists(self.model_plot_fig_path):
@@ -244,7 +244,7 @@ class PlotFigure:
             ax1.plot(Lepoch, mu[:,L], c = colors[L] ,ls='-')
             ax1.plot(Lepoch, sigma[:,L], c = colors[L], ls='-.')
 
-        ax1.set_ylim(bottom=1.e-5)
+        # ax1.set_ylim(bottom=1.e-5)
         self._commom_ax_setting_mean_std(ax1, "Mean and STD", show_xlabel=False)
 
         # 2- mean
@@ -283,7 +283,7 @@ class PlotFigure:
             ax.set_ylabel('Means and Standard Deviations', fontsize=19)
 
         ax.set_xscale('log')
-        ax.set_yscale('log')
+        # ax.set_yscale('log')
 
         ax.set_facecolor('#edf0f8')
         ax.grid(color='w', linestyle='-.', linewidth = 1)
@@ -440,10 +440,10 @@ class PlotFigure:
         fig.savefig(fig_name_jpg, format='jpeg')
 
         # save in plot_root
-        fig_name_eps = os.path.join(self.plot_dir, "{}_{}.pdf".format(fig_name, self.model_name))
+        fig_name_eps = os.path.join(self.plot_path, "{}_{}.pdf".format(fig_name, self.model_name))
         fig.savefig(fig_name_eps, format='pdf')
 
-        fig_name_jpg = os.path.join(self.plot_dir, "{}_{}.jpg".format(fig_name, self.model_name))
+        fig_name_jpg = os.path.join(self.plot_path, "{}_{}.jpg".format(fig_name, self.model_name))
         fig.savefig(fig_name_jpg, format='jpeg')
 
 
@@ -527,7 +527,7 @@ def main():
     C = type('type_C', (object,), {})
     opt = C()
 
-    opt.plot_dir = './plots'
+    opt.plot_path = './plots'
     opt.max_epoch = 100
     opt.activation = 'tanh'
     # # opt.timestamp = '19050310'
@@ -537,7 +537,7 @@ def main():
 
     # test post plot
     pltfig = PlotFigure(opt)
-    pltfig.post_plot(['acc_loss'])
+    pltfig.post_plot(['mean_std'])
     
 
 if __name__ == "__main__":
