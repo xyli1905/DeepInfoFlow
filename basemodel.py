@@ -67,13 +67,13 @@ class BaseModel:
         self._name = f"{self._name}_{self._opt.dataset}"
 
         dp = DataProvider(dataset_name = self._opt.dataset, 
-                          batch_size = self._opt.batchsize, 
+                          batch_size = self._opt.batch_size, 
                           num_workers = self._opt.num_workers, 
                           shuffle = True)
         self._train_set, self._test_set = dp.get_train_test_data()
 
-        self._train_size = len(self._train_set)
-        self._test_size = len(self._test_set)
+        self._train_size = len(self._train_set.dataset)
+        self._test_size = len(self._test_set.dataset)
 
 
     def train_model(self):
@@ -88,6 +88,7 @@ class BaseModel:
 
         print('Begin training...')
         for i_epoch in range(self._opt.max_epoch):
+            t_begin = time.time()
 
             if ((i_epoch+1) % self._save_step == 0) or (i_epoch == 0):
                 print('\n{}'.format(11*'------'))
@@ -116,7 +117,6 @@ class BaseModel:
                 print('{}'.format(11*'------'))
                 t_end = time.time()
                 print('time cost for this output period: {:.3f}(s)'.format(t_end - t_begin))
-                t_begin = time.time()
 
             # saving model for each epoch
             self.save_model(i_epoch)

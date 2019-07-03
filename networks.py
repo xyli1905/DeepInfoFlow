@@ -34,10 +34,10 @@ class DenseNet(BaseNetwork):
     # def __init__(self, activation , dims, train = True):
     def __init__(self, opt, train = True):
         super(DenseNet, self).__init__(opt, train)
-        self.D = nn.ModuleList([])
-        self.A = nn.ModuleList([])
 
     def construct_model(self):
+        self.D = nn.ModuleList([])
+        self.A = nn.ModuleList([])
         name = self._opt.activation
         depth = len(self._opt.layer_dims) - 1
         numOfActiv = depth - 1

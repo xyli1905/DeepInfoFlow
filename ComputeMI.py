@@ -88,7 +88,7 @@ class ComputeMI(NumericalExperiment):
         Nrepeats = 1
         random_indexes = self.random_index((Nrepeats, 1000))
 
-        print("len dataset : ", len(self.dataset) * self._opt.batch_size)
+        print("len dataset : ", len(self.dataset.dataset))
         model_save_path = os.path.join(self.model_path, 'models')
         epoch_files = os.listdir(model_save_path)
         for epoch_file in epoch_files:

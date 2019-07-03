@@ -4,6 +4,7 @@ from plot_utils import PlotFigure
 import numpy as np 
 import pickle
 import os
+import re
 
 class Logger(object):
     def __init__(self, opt, plot_name):
@@ -27,6 +28,8 @@ class Logger(object):
         self.recorded_epochs = []
 
         self.svds = [[], []] # first for original SVD and second for normalized SVD
+
+        self._process_param_names = re.compile(r"^D.+(weight|bias)$")
         
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
@@ -109,7 +112,7 @@ class Logger(object):
         # record model parameters
         if len(self.weight_grad) == 0 and len(self.weight_value) == 0 and len(self.bias_grad) == 0 and len(self.bias_value) == 0:
             for name, param in model.named_parameters():
-                if name.endswith(("bias", "weight")):
+                if self._process_param_names.match(name):
                     grad = param.grad.clone().detach().unsqueeze(0)
                     data = param.data.clone().detach().unsqueeze(0)
                     if name.endswith('weight'):
@@ -121,7 +124,7 @@ class Logger(object):
         else:
             index = 0
             for name, param in model.named_parameters():
-                if name.endswith(("bias", "weight")):
+                if self._process_param_names.match(name):
                     grad = param.grad.clone().detach().unsqueeze(0)
                     data = param.data.clone().detach().unsqueeze(0)
                     if name.endswith('weight'):
