@@ -20,14 +20,16 @@ class BaseOption:
         self._parser.add_argument('--slope', type=float, default=1.0, help='slope for activationX')
         self._parser.add_argument('--dispX', type=float, default=0.0, help='x displacement for activationX')
 
-
         self._parser.add_argument('--batch_size', type=int, default=512, help='number of data points in one batch')
         self._parser.add_argument('--max_epoch', type=int, default=500, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
 
+        self._parser.add_argument('--optimizer', type=str, default='sgd', help='choice of optimizer')
         self._parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
         self._parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
         self._parser.add_argument('--weight_decay', type=float, default=0.9, help='weight decay')
+
+        self._parser.add_argument('--lossfunc', type=str, default='crossentropy', help='choice of loss function')
         
         self._parser.add_argument('--full_mi', type=self.boolean_string, default=True, help='weather construct full dataset')
 

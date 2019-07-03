@@ -29,21 +29,19 @@ class SeqModel(BaseModel):
         '''
         SGD ADAM
         '''
-        # if self._opt.optimizer == 'sgd':
-        #     self._optimizer = optim.SGD(self._network.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
-        # elif self._opt.optimizer == 'adam':
-        #     self._optimizer = optim.Adam(self._network.parameters(), lr=self._opt.lr)
-        self._optimizer = optim.SGD(self._network.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
+        if self._opt.optimizer == 'sgd':
+            self._optimizer = optim.SGD(self._network.parameters(), lr=self._opt.lr, momentum=self._opt.momentum)
+        elif self._opt.optimizer == 'adam':
+            self._optimizer = optim.Adam(self._network.parameters(), lr=self._opt.lr)
 
     def set_lossfunction(self):
         '''
         Crossentrop or self-defined classes
         '''
-        # if self._opt.lossfunc == 'crossentropy':
-        #     self._criterion = nn.CrossEntropyLoss()
-        # else:
-        #     raise ValueError('presently only support CrossEntropy')
-        self._criterion = nn.CrossEntropyLoss()
+        if self._opt.lossfunc == 'crossentropy':
+            self._criterion = nn.CrossEntropyLoss()
+        else:
+            raise ValueError('presently only support CrossEntropy')
     
     
     def train_epoch(self, i_epoch, probe):
@@ -117,9 +115,9 @@ class SeqModel(BaseModel):
 
 
 if __name__ == "__main__":
-    t = IBmodel()
+    t = SeqModel()
     t._update_opt({})
-    t.training_model()
+    t.train_model()
     
     # loss = nn.CrossEntropyLoss()
     # inputs = torch.randn(64, 2, requires_grad=True)

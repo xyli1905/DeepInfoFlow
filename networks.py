@@ -15,11 +15,11 @@ class BaseNetwork(nn.Module):
 
         # dictionary of available activations
         #NOTE the use of eval in DenseNet
-        self.activ_dict = {'tanh': 'nn.Tanh()', 'relu': 'nn.ReLU()', 'relu6': 'nn.ReLU6()', 
-                           'elu': 'nn.ELU()', 'prelu': 'nn.PReLU()', 'leakyRelu': 'nn.LeakyReLU()', 
-                           'sigmoid': 'nn.Sigmoid()', 'softplus': 'nn.Softplus()'}
+        self.activ_dict = {'tanh': nn.Tanh, 'relu': nn.ReLU, 'relu6': nn.ReLU6, 
+                           'elu': nn.ELU, 'prelu': nn.PReLU, 'leakyRelu': nn.LeakyReLU, 
+                           'sigmoid': nn.Sigmoid, 'softplus': nn.Softplus}
 
-        self.ActivX_dict = {'relux': 'ReLUX', 'tanhx': 'TanhX'}
+        self.ActivX_dict = {'relux': ReLUX, 'tanhx': TanhX}
 
         self.construct_model()
 
@@ -49,7 +49,7 @@ class DenseNet(BaseNetwork):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( eval(self.activ_dict[name]) )
+                    self.A.append( self.activ_dict[name]() )
                 self.D.append(nn.Linear(self._opt.layer_dims[i], self._opt.layer_dims[i + 1]))
 
         elif name in self.ActivX_dict.keys():
@@ -59,10 +59,10 @@ class DenseNet(BaseNetwork):
             for i in range(depth):
                 if numOfActiv > 0:
                     numOfActiv -= 1
-                    self.A.append( eval(self.ActivX_dict[name])(Vmax = self._opt.Vmax, 
-                                                                Vmin = self._opt.Vmin, 
-                                                                slope = self._opt.slope, 
-                                                                dispX = self._opt.dispX))
+                    self.A.append( self.ActivX_dict[name](Vmax = self._opt.Vmax, 
+                                                          Vmin = self._opt.Vmin, 
+                                                          slope = self._opt.slope, 
+                                                          dispX = self._opt.dispX))
                 self.D.append(nn.Linear(self._opt.layer_dims[i], self._opt.layer_dims[i + 1]))
 
         else:

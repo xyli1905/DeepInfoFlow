@@ -36,6 +36,9 @@ class BaseModel:
         self._set_model_directory(model_path)
     
 
+    def get_opt(self):
+        return self._opt
+
     def eval(self):
         raise NotImplementedError('eval should be specified in individual model')
 

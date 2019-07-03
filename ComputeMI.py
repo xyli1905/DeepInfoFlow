@@ -10,25 +10,18 @@ import sys
 import threading
 import pickle
 from dataLoader import DataProvider
+from numexp import NumericalExperiment
 
-class ComputeMI:
-    def __init__(self, measure_type = 'EVKL'):
+class ComputeMI(NumericalExperiment):
+    def __init__(self, model_name = None, save_root = None, measure_type = 'EVKL'):
+        super(ComputeMI, self).__init__(model_name, save_root)
         self.progress_bar = 0
-        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
-        self.model_name = None
 
-        self.model_name = 'IBNet_special_test_tanhx_Time_06_26_21_49'
-        self.path = os.path.join('./results', self.model_name)
+        # set model
+        self._model = SeqModel(IS_TRAIN=False, model_path=self.model_path)
+        self._opt = self._model.get_opt()
 
-        if self.model_name == None:
-            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
-        print(self.model_name)
-
-        # get model
-        self._model = SeqModel(False, self.path)
-
-        self._opt = load_config.read_json_as_argparse(self.path) # load training args
-
+        # set dataset
         dataProvider = DataProvider(dataset_name = self._opt.dataset,  batch_size = self._opt.batch_size, num_workers = 0, shuffle = False)
         self.dataset = dataProvider.get_full_data()
         print("Measuring on ", self._opt.dataset)
@@ -36,6 +29,11 @@ class ComputeMI:
 
         # get measure
         self.measure_type = measure_type
+    
+    def manual_set_model_path(self):
+        # self.model_name = 'IBNet_special_test_tanhx_Time_06_26_21_49'
+        # self.save_root = './results'
+        pass
 
     def eval(self):
         if self.measure_type == 'EVKL':
@@ -91,8 +89,8 @@ class ComputeMI:
         random_indexes = self.random_index((Nrepeats, 1000))
 
         print("len dataset : ", len(self.dataset) * self._opt.batch_size)
-        model_path = os.path.join(self.path, 'models')
-        epoch_files = os.listdir(model_path)
+        model_save_path = os.path.join(self.model_path, 'models')
+        epoch_files = os.listdir(model_save_path)
         for epoch_file in epoch_files:
             # initial progress record
             progress += 1
@@ -194,8 +192,8 @@ class ComputeMI:
     def kdeMethod(self):
         saved_labelixs, label_probs = self.get_saved_labelixs_and_labelprobs()
 
-        model_path = os.path.join(self.path, 'models')
-        epoch_files = os.listdir(model_path)
+        model_save_path = os.path.join(self.model_path, 'models')
+        epoch_files = os.listdir(model_save_path)
         start = time.time()
 
         IX = {}
@@ -211,16 +209,11 @@ class ComputeMI:
             if not epoch_file.endswith('.pth'):
                 continue
             
-            # load ckpt
-            ckpt = torch.load(os.path.join(model_path, epoch_file))
-            epoch = ckpt['epoch']
-
-            #check if this epoch need to be calculated
-            if not self.needLog(epoch):
-                continue
-
             # load model epoch weight
-            self._model.load_state_dict(ckpt['model_state_dict'])
+            indicators = self._model.load_model(epoch_file, CKECK_LOG=True)
+            if not indicators["NEED_LOG"]:
+                continue # if this epoch does not need to be logged continue
+            epoch = indicators["epoch"]
             # set model to eval
             self._model.eval()
 
@@ -231,7 +224,7 @@ class ComputeMI:
 
             # inference on test set to get layer activations
             for j, (inputs, labels) in enumerate(self.dataset):
-                outputs = self._model(inputs)
+                outputs = self._model.predict(inputs)
                 Y.append(labels)
                 X.append(inputs)
 
