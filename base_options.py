@@ -46,7 +46,7 @@ class BaseOption:
         self._parser.add_argument('--save_root', type=str, default='./results', help='Path to store outputs of evaluation of a model')
         self._parser.add_argument('--data_path', type=str, default='./data_proc/processed_data', help='Path storing preprocessed data')
         self._parser.add_argument('--plot_path', type=str, default='./plots', help='Path to store outputs of information plane plots')
-        self._parser.add_argument('--chkp_dir', type=str, default='models', help='name of directory storing trained models and optimizers')
+        self._parser.add_argument('--ckpt_dir', type=str, default='models', help='checkpoint directory storing trained models and optimizers')
 
 
         self._initialized = True
