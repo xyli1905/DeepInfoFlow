@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import utils
 import os
-from numexp import NumericalExperiment
+from numexpt import NumericalExperiment
 from SeqModel import SeqModel
 import time
 from plot_utils import PlotFigure

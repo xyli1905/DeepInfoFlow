@@ -10,7 +10,7 @@ import sys
 import threading
 import pickle
 from dataLoader import DataProvider
-from numexp import NumericalExperiment
+from numexpt import NumericalExperiment
 
 class ComputeMI(NumericalExperiment):
     def __init__(self, model_name = None, save_root = None, measure_type = 'EVKL'):
