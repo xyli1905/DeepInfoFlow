@@ -86,7 +86,7 @@ class BaseModel:
         probe = Monitor(self._train_size, self._test_size, save_step = self._save_step)
         self._logger = Logger(opt = self._opt, plot_name = self._model_name)
 
-        print('Begin training...')
+        print(f"Begin training at {time.asctime()}")
         t_begin = time.time()
         for i_epoch in range(self._opt.max_epoch):
 

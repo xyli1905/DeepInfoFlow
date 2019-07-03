@@ -13,7 +13,7 @@ class BaseOption:
         self._parser.add_argument('--layer_dims', type=list, default=[12, 10, 7, 5, 4, 3, 2], help='dimention of each layer')
         self._parser.add_argument('--dataset', type=str, default='IBNet', help='dataset')
 
-        self._parser.add_argument('--activation', type=str, default='tanhx', help='activation method')
+        self._parser.add_argument('--activation', type=str, default='relux', help='activation method')
         #below four only apply to 'relux' and 'tanhx' cases
         self._parser.add_argument('--Vmax', type=float, default=None, help='Max Value for activationX')
         self._parser.add_argument('--Vmin', type=float, default=None, help='Min Value for activationX')

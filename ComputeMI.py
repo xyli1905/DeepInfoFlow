@@ -81,6 +81,7 @@ class ComputeMI(NumericalExperiment):
     # proposed method for empirical variational analysis
     def EVMethod(self):
         start = time.time()
+        print(f"calculation begins at {time.asctime()}")
 
         IX_dic = {}
         IY_dic = {}

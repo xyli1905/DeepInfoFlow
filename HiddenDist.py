@@ -31,6 +31,8 @@ class HiddenDist(NumericalExperiment):
         pass
 
     def CalculateDist(self):
+        print(f"calculation begins at {time.asctime()}")
+        
         ckpt_path = os.path.join(self.model_path, self._opt.ckpt_dir)
         epoch_files = os.listdir(ckpt_path)
 
