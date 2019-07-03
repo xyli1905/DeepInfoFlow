@@ -3,61 +3,37 @@ import numpy as np
 import measure_utils as measure
 import utils
 import os
-from networks import DenseNet
-from json_parser import JsonParser
+from SeqModel import SeqModel
 import time
 from plot_utils import PlotFigure
 import sys
 import threading
 import pickle
+from dataLoader import DataProvider
 
 class ComputeMI:
     def __init__(self, measure_type = 'EVKL'):
         self.progress_bar = 0
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # device setup
-        load_config = JsonParser() # training args
         self.model_name = None
 
-        # self.model_name = 'IBNet_kde_adam_Time_06_11_12_07_Model_12_12_10_7_5_4_3_2_2_'
-        # self.path = os.path.join('./results', self.model_name)
-        
+        self.model_name = 'IBNet_special_test_tanhx_Time_06_26_21_49'
+        self.path = os.path.join('./results', self.model_name)
+
         if self.model_name == None:
-            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model       
+            self.model_name, self.path = utils.find_newest_model('./results') # auto-find the newest model
         print(self.model_name)
-        
-        self._opt = load_config.read_json_as_argparse(self.path) # load training args
-
-        # force the batch size to 1 for calculation convinience
-        self._opt.batch_size = 1
-
-        # dataset
-        if self._opt.dataset == "MNIST":
-            train_data, test_data = utils.get_mnist()
-
-            if not self._opt.full_mi:
-                # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
-                self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
-            else:
-                dataset = torch.utils.data.ConcatDataset([train_data, test_data])
-                self._test_set = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-            print("MNIST experiment")
-
-        elif self._opt.dataset == "IBNet":
-            train_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=True)
-            test_data = utils.CustomDataset('2017_12_21_16_51_3_275766', train=False)
-            # self._train_set = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=False, num_workers=0)
-            if not self._opt.full_mi:
-                self._test_set = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=0)
-            else:
-                dataset = torch.utils.data.ConcatDataset([train_data, test_data])
-                self._test_set = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-            print("IBnet experiment")
-        else:
-            raise RuntimeError('Do not have {name} dataset, Please be sure to use the existing dataset'.format(name = self._opt.dataset))
 
         # get model
-        self._model = DenseNet(opt = self._opt, train = False)
-        
+        self._model = SeqModel(False, self.path)
+
+        self._opt = load_config.read_json_as_argparse(self.path) # load training args
+
+        dataProvider = DataProvider(dataset_name = self._opt.dataset,  batch_size = self._opt.batch_size, num_workers = 0, shuffle = False)
+        self.dataset = dataProvider.get_full_data()
+        print("Measuring on ", self._opt.dataset)
+        print("batch size: ", self._opt.batch_size)
+
         # get measure
         self.measure_type = measure_type
 
@@ -73,7 +49,7 @@ class ComputeMI:
         label_probs = []
         num_samples = 0
         # iter over dataset to get all labels
-        for i, (data, label) in enumerate(self._test_set):
+        for i, (data, label) in enumerate(self.dataset):
             if label.item() not in saved_labelixs.keys():
                 saved_labelixs[label.item()] = [i]
             else:
@@ -114,7 +90,7 @@ class ComputeMI:
         Nrepeats = 1
         random_indexes = self.random_index((Nrepeats, 1000))
 
-        print("len dataset : ", len(self._test_set))
+        print("len dataset : ", len(self.dataset) * self._opt.batch_size)
         model_path = os.path.join(self.path, 'models')
         epoch_files = os.listdir(model_path)
         for epoch_file in epoch_files:
@@ -123,31 +99,28 @@ class ComputeMI:
 
             self.progress_bar = int(str(round(float(progress / len(epoch_files)) * 100.0)))
             print("\rprogress : " + str(round(float(progress / len(epoch_files)) * 100.0)) + "%",end = "", flush = True)
-            if not epoch_file.endswith('.pth'):
-                continue
-            # load ckpt
-            ckpt = torch.load(os.path.join(model_path, epoch_file))
-            epoch = ckpt['epoch']
 
-            #check if this epoch need to be calculated
-            if not self.needLog(epoch):
-                continue
 
             # load model epoch weight
-            self._model.load_state_dict(ckpt['model_state_dict'])
+            indicators = self._model.load_model(epoch_file, CKECK_LOG=True)
+            if not indicators["NEED_LOG"]:
+                continue # if this epoch does not need to be logged continue
+            epoch = indicators["epoch"]
             # set model to eval
             self._model.eval()
 
             # container for activations, features and labels
             layer_activity = []
-            X = []
-            Y = []
+            X = np.array([])
+            Y = np.array([])
 
             # inference on test set to get layer activations
-            for j, (inputs, labels) in enumerate(self._test_set):
-                outputs = self._model(inputs)
-                Y.append(labels.clone().numpy())
-                X.append(inputs.clone().squeeze(0).numpy())
+            for j, (inputs, labels) in enumerate(self.dataset):
+                outputs = self._model.predict(inputs)
+                np_labels = labels.clone().numpy().reshape(-1,1)
+                np_inputs = inputs.clone().squeeze(0).numpy()
+                X = np.vstack((X, np_inputs)) if len(X) != 0 else np_inputs
+                Y = np.vstack((Y, np_labels)) if len(Y) != 0 else np_labels
 
                 # for each layer activation add to container
                 for i in range(len(outputs)):
@@ -157,9 +130,6 @@ class ComputeMI:
                     else:
                         layer_activity[i] = torch.cat((layer_activity[i], data), dim = 0)
 
-            # for each layer, compute averaged MI
-            X = np.array(X)
-            Y = np.array(Y)
 
             IX_epoch = []
             IY_epoch = []
@@ -167,7 +137,7 @@ class ComputeMI:
                 layer = layer.detach().numpy()
 
                 avg_IX, avg_IY = self._compute_averaged_IX_IY(X, Y, layer, random_indexes)
-                
+
                 IX_epoch.append(avg_IX)
                 IY_epoch.append(avg_IY)
 
@@ -176,7 +146,7 @@ class ComputeMI:
                 IY_dic[epoch] = IY_epoch
             else:
                 raise RuntimeError('epoch is duplicated')
-        
+
         # save data, then plot
         plotter = PlotFigure(self._opt, self.model_name)
         plotter.save_plot_data("IX_dic_data.pkl", IX_dic)
@@ -260,7 +230,7 @@ class ComputeMI:
             Y = []
 
             # inference on test set to get layer activations
-            for j, (inputs, labels) in enumerate(self._test_set):
+            for j, (inputs, labels) in enumerate(self.dataset):
                 outputs = self._model(inputs)
                 Y.append(labels)
                 X.append(inputs)
