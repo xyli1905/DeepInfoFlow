@@ -15,7 +15,7 @@ class BaseNetwork(nn.Module):
 
         # dictionary of available activations
         #NOTE the use of eval in DenseNet
-        self.activ_dict = {'tanh': nn.Tanh, 'relu': nn.ReLU, 'relu6': nn.ReLU6, 
+        self.activ_dict = {'tanh': nn.Tanh, 'relu': nn.ReLU, 'relu6': nn.ReLU6, 'prelu': nn.PReLU,
                            'elu': nn.ELU, 'prelu': nn.PReLU, 'leakyRelu': nn.LeakyReLU, 
                            'sigmoid': nn.Sigmoid, 'softplus': nn.Softplus}
 
