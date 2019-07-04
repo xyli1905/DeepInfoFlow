@@ -51,59 +51,6 @@ class Logger(object):
                                         data[source_key][type_key][epoch_key][layer_key] = 0
         return data
 
-    def update(self, epoch):
-        self.recorded_epochs.append(epoch)
-        epoch_key = "epoch" + str(epoch)
-        for i in range(len(self.weight_grad)):
-            layer_key = "layer" + str(i)
-            if self._opt.mean:
-                self.data["weight_value"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=False)
-                self.data["weight_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=True)
-                self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= False)
-                self.data["bias_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= True)
-            if self._opt.std:
-                self.data["weight_value"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=False)
-                self.data["weight_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=True)
-                self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= False)
-                self.data["bias_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= True)
-            if self._opt.l2n:
-                self.data["weight_value"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=False)
-                self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
-                self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
-                self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
-        self.calculate_svd()
-        self.clear()
-
-    def calculate_svd(self):
-        one_epoch_original_weight = []
-        one_epoch_normalized_weight = []
-        # one_epoch_grad = []
-
-        # for calculating weight svd
-        for weight in self.weight_value:
-            mean_weight = torch.mean(weight, dim = 0)
-            _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
-            ##NOTE either use the original s or the normalized one
-            weight_sigma_tmp = weight_sigma.numpy()
-            one_epoch_normalized_weight.append(weight_sigma_tmp/weight_sigma_tmp[0])
-            one_epoch_original_weight.append(weight_sigma_tmp)
-            # print(one_epoch_weight)
-        self.svds[0].append(one_epoch_original_weight) # [Lepoch] [NLayer] [weight_layers]
-        self.svds[1].append(one_epoch_normalized_weight) # [Lepoch] [NLayer] [weight_layers]
-        ##NOTE svd for grad, note used presently
-        # for calcularing grad svd
-        # for grad in self.weight_grad:
-        #     mean_grad = torch.mean(grad, dim = 0)
-        #     _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
-        #     one_epoch_grad.append(grad_sigma.numpy())
-        # self.svds[1].append(one_epoch_grad)
-        #######################################
-
-    def clear(self):
-        self.weight_grad = []
-        self.weight_value = []
-        self.bias_grad = []
-        self.bias_value = []
 
     def log(self, model):
         # record model parameters
@@ -144,6 +91,29 @@ class Logger(object):
         else:
             raise ValueError('not valid record type')
 
+
+    def update(self, epoch):
+        self.recorded_epochs.append(epoch)
+        epoch_key = "epoch" + str(epoch)
+        for i in range(len(self.weight_grad)):
+            layer_key = "layer" + str(i)
+            if self._opt.mean:
+                self.data["weight_value"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=True)
+                self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= True)
+            if self._opt.std:
+                self.data["weight_value"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=True)
+                self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= True)
+            if self._opt.l2n:
+                self.data["weight_value"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
+                self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
+        self.calculate_svd()
+        self.clear()
 
     def dataParser(self, layer, _type="mean", isWeight=True, isGrad = True, method = 1):
         if isWeight and isGrad:
@@ -195,23 +165,37 @@ class Logger(object):
         else:
             raise RuntimeError('error in calculate weight and gradient data')
 
-    def get_mean_std(self):
-        epoch_std = []
-        epoch_mean = []
-        for epoch in self.recorded_epochs:
-            epoch_key = 'epoch' + str(epoch)
-            layer_std = []
-            layer_mean = []
-            for layer in range(len(self._opt.layer_dims) - 1):
-                layer_key = 'layer' + str(layer)
-                layer_mean.append(self.data["weight_grad"]["mean"][epoch_key][layer_key])
-                layer_std.append(self.data["weight_grad"]["std"][epoch_key][layer_key])
-            epoch_mean.append(layer_mean)
-            epoch_std.append(layer_std)
-        epoch_mean = np.array(epoch_mean)
-        epoch_std = np.array(epoch_std)
+    def calculate_svd(self):
+        one_epoch_original_weight = []
+        one_epoch_normalized_weight = []
+        # one_epoch_grad = []
 
-        return epoch_mean, epoch_std
+        # for calculating weight svd
+        for weight in self.weight_value:
+            mean_weight = torch.mean(weight, dim = 0)
+            _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
+            ##NOTE either use the original s or the normalized one
+            weight_sigma_tmp = weight_sigma.numpy()
+            one_epoch_normalized_weight.append(weight_sigma_tmp/weight_sigma_tmp[0])
+            one_epoch_original_weight.append(weight_sigma_tmp)
+            # print(one_epoch_weight)
+        self.svds[0].append(one_epoch_original_weight) # [Lepoch] [NLayer] [weight_layers]
+        self.svds[1].append(one_epoch_normalized_weight) # [Lepoch] [NLayer] [weight_layers]
+        ##NOTE svd for grad, note used presently
+        # for calcularing grad svd
+        # for grad in self.weight_grad:
+        #     mean_grad = torch.mean(grad, dim = 0)
+        #     _, grad_sigma, _ = torch.svd(mean_grad, compute_uv = False)
+        #     one_epoch_grad.append(grad_sigma.numpy())
+        # self.svds[1].append(one_epoch_grad)
+        #######################################
+
+    def clear(self):
+        self.weight_grad = []
+        self.weight_value = []
+        self.bias_grad = []
+        self.bias_value = []
+
 
     def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True):
         # save epoch data
@@ -235,7 +219,24 @@ class Logger(object):
             self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
             self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
             self.plotter.save_plot_data("loss_data.pkl", self.loss)
+    
+    def get_mean_std(self):
+        epoch_std = []
+        epoch_mean = []
+        for epoch in self.recorded_epochs:
+            epoch_key = 'epoch' + str(epoch)
+            layer_std = []
+            layer_mean = []
+            for layer in range(len(self._opt.layer_dims) - 1):
+                layer_key = 'layer' + str(layer)
+                layer_mean.append(self.data["weight_grad"]["mean"][epoch_key][layer_key])
+                layer_std.append(self.data["weight_grad"]["std"][epoch_key][layer_key])
+            epoch_mean.append(layer_mean)
+            epoch_std.append(layer_std)
+        epoch_mean = np.array(epoch_mean)
+        epoch_std = np.array(epoch_std)
 
+        return epoch_mean, epoch_std
 
 
     def __str__(self):
