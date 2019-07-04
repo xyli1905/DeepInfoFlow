@@ -5,7 +5,7 @@ import torch.optim as optim
 
 from base_options import BaseOption
 from logger import *
-import utils
+import func_utils as utils
 from dataLoader import DataProvider
 
 import datetime

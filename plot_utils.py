@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 import datetime
 import os
-import utils
+import func_utils as utils
 import sys
 from ModelInfoWrap import ModelInfo
 

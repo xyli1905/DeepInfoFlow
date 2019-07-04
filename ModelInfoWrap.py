@@ -1,6 +1,6 @@
 from inspect import getfullargspec
 from functools import wraps
-import utils
+import func_utils as utils
 import os
 
 def ModelInfo(func):
