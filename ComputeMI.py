@@ -1,22 +1,19 @@
 import torch
 import numpy as np
 import measure_utils as measure
-import utils
 import os
 from SeqModel import SeqModel
 import time
 from plot_utils import PlotFigure
-import sys
 import threading
-import pickle
 from dataLoader import DataProvider
-from numexpt import NumericalExperiment
+from ModelInfoWrap import ModelInfo
 
-class ComputeMI(NumericalExperiment):
+class ComputeMI:
+    @ModelInfo
     def __init__(self, model_name = None, save_root = None, measure_type = 'EVKL'):
-        super(ComputeMI, self).__init__(model_name, save_root)
         # ------------------------------------------------------------------ #
-        # self.model_path and self.model_name from NumericalExperiment class #
+        # NOTE self.model_path and self.model_name from Decorator ModelInfo  #
         # ------------------------------------------------------------------ #
         self.progress_bar = 0
 
@@ -32,11 +29,7 @@ class ComputeMI(NumericalExperiment):
 
         # get measure
         self.measure_type = measure_type
-    
-    def manual_set_model_path(self):
-        # self.model_name = 'IBNet_special_test_tanhx_Time_06_26_21_49'
-        # self.save_root = './results'
-        pass
+
 
     def eval(self):
         if self.measure_type == 'EVKL':

@@ -12,9 +12,6 @@ import datetime
 import time
 import os
 
-import json
-import argparse
-
 
 class BaseModel:
     def __init__(self, IS_TRAIN = True, model_path = None):
@@ -25,8 +22,6 @@ class BaseModel:
         self._is_train = IS_TRAIN
         self._model_saved = False
         self._model_loaded = False
-        self._json_saved = False
-        self._json_loaded = False
 
         self._save_step = 100
 
@@ -81,7 +76,7 @@ class BaseModel:
             raise ValueError('train_model only applie for _is_train=True')
 
         self._load_dataset()
-        self._save_opt_to_json()
+        utils.save_opt_to_json(self._opt, self._path_to_dir)
         
         probe = Monitor(self._train_size, self._test_size, save_step = self._save_step)
         self._logger = Logger(opt = self._opt, plot_name = self._model_name)
@@ -210,29 +205,7 @@ class BaseModel:
         if mpath == None:
             self._opt = BaseOption().parse()
         else:
-            self._opt = self._load_json_as_argparse(mpath)
-
-
-    def _save_opt_to_json(self):
-        json_dir = os.path.join(self._path_to_dir, "opt.json")
-        argparse_dict = vars(self._opt)
-        with open(json_dir, 'w') as outfile:
-            json.dump(argparse_dict, outfile)
-        print ("configs have been dumped into %s" % json_dir)
-        self._json_saved = True
-
-    def _load_json_as_argparse(self, mpath):
-        try:
-            json_dir = os.path.join(mpath, "opt.json")
-            js = open(json_dir).read()
-            data = json.loads(js)
-            opt = argparse.Namespace()
-            for key, val in data.items():
-                setattr(opt, key, val) 
-            return opt
-        except Exception as e:
-            print("No such file or directory %s" % (json_dir))
-        self._json_loaded = True
+            self._opt = utils.load_json_as_argparse(mpath)
 
     def _update_opt(self, other):
         for key, val in other.items():

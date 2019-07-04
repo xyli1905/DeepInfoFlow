@@ -9,6 +9,7 @@ import datetime
 import os
 import utils
 import sys
+from ModelInfoWrap import ModelInfo
 
 np.random.seed()
 
@@ -21,28 +22,30 @@ see for reference: https://github.com/matplotlib/matplotlib/issues/13414
 '''
 
 class PlotFigure:
-    def __init__(self, opt, model_name=None, IS_HIDDEN_DIST=False):
+    @ModelInfo
+    def __init__(self, opt=None, model_name=None, save_root = None, IS_HIDDEN_DIST=False):
+        # ------------------------------------------------------------------ #
+        # NOTE self.model_path and self.model_name from Decorator ModelInfo  #
+        # ------------------------------------------------------------------ #
         self.name = 'Plot_Utils'
-        self._opt = opt
-        self._save_root = './results'
+
+        if opt == None:
+            self._opt = utils.load_json_as_argparse(self.model_path)
+        else:
+            self._opt = opt
 
         # NOTE we save figures in two places: the plot_root and results/model_path
         # check existence of plot_root
-        self.plot_path = opt.plot_path
-        if not os.path.exists(opt.plot_path):
-            os.mkdir(opt.plot_path)
+        self.plot_path = self._opt.plot_path
+        if not os.path.exists(self._opt.plot_path):
+            os.mkdir(self._opt.plot_path)
 
-        if model_name == None:
-            self.model_name, tmp_dir = utils.find_newest_model(self._save_root)
-        else:
-            self.model_name = model_name
-            tmp_dir = os.path.join(self._save_root, model_name)
-
-        self.model_plot_fig_path = os.path.join(tmp_dir, 'plots_fig')
+        # model_path must exist already
+        self.model_plot_fig_path = os.path.join(self.model_path, 'plots_fig')
         if not os.path.exists(self.model_plot_fig_path):
             os.mkdir(self.model_plot_fig_path)
 
-        self.model_plot_data_path = os.path.join(tmp_dir, 'plots_data')
+        self.model_plot_data_path = os.path.join(self.model_path, 'plots_data')
         if not os.path.exists(self.model_plot_data_path):
             os.mkdir(self.model_plot_data_path)
         
@@ -511,32 +514,17 @@ def main():
     else:
         pass
 
-    # # test data for plot_MI_plane
-    # x = {0: np.array([0.51842304, 0.92556737, 0.36004445, 0.11063085, 0.89165   ]),
-    #      1: np.array([0.52649129, 0.45103952, 0.63225806, 0.0176416,  0.94888   ])
-    # }  
-    # y = {0: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ]),
-    #      1: np.array([0.63147293, 0.59704809, 0.67011044, 0.01976542, 0.95609   ])
-    # }
+    # C = type('type_C', (object,), {})
+    # opt = C()
 
-    # # test data for plot_MI_plane
-    # Lepoch = np.array([1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900])
-    # mu = np.random.rand(1, Lepoch.shape[0])
-    # sigma = np.random.rand(1, Lepoch.shape[0])
-
-    C = type('type_C', (object,), {})
-    opt = C()
-
-    opt.plot_path = './plots'
-    opt.max_epoch = 100
-    opt.activation = 'tanh'
-    # # opt.timestamp = '19050310'
-    # pltfig = PlotFigure(opt, model_name)
-    # pltfig.plot_MI_plane(x,y)
-    # # pltfig.plot_mean_std(Lepoch, mu, sigma)
+    # opt.plot_path = './plots'
+    # opt.max_epoch = 100
+    # opt.activation = 'tanh'
 
     # test post plot
-    pltfig = PlotFigure(opt)
+    # model_name = 'IBNet_test_plot_acc_loss_tanhx_Time_06_25_15_48'
+    # save_root = './results'
+    pltfig = PlotFigure()
     pltfig.post_plot(['mean_std'])
     
 

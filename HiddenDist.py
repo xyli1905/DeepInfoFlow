@@ -1,17 +1,18 @@
 import torch
 import numpy as np
-import utils
 import os
-from numexpt import NumericalExperiment
 from SeqModel import SeqModel
 import time
 from plot_utils import PlotFigure
 from dataLoader import DataProvider
+from ModelInfoWrap import ModelInfo
 
-class HiddenDist(NumericalExperiment):
+class HiddenDist:
+    @ModelInfo
     def __init__(self, model_name = None, save_root = None):
-        super(HiddenDist, self).__init__(model_name, save_root)
-        
+        # ------------------------------------------------------------------ #
+        # NOTE self.model_path and self.model_name from Decorator ModelInfo  #
+        # ------------------------------------------------------------------ #     
         # set model
         self._model = SeqModel(IS_TRAIN=False, model_path=self.model_path)
         self._opt = self._model.get_opt()
@@ -24,11 +25,6 @@ class HiddenDist(NumericalExperiment):
         self.dataset = dataProvider.get_full_data()
         print("Measuring on ", self._opt.dataset)
         print("batch size: ", self._opt.batch_size)
-    
-    def manual_set_model_path(self):
-        # self.model_name = 'IBNet_special_test_tanhx_Time_06_26_21_49'
-        # self.save_root = './results'
-        pass
 
     def CalculateDist(self):
         print(f"calculation begins at {time.asctime()}")
@@ -79,17 +75,17 @@ if __name__ == "__main__":
     # act.CalculateDist()
 
     save_root = './results'
-    model = 'IBNet_test_new_opt_tanhx_Time_06_27_18_24'
+    model_name = 'IBNet_test_new_opt_tanhx_Time_06_27_18_24'
     # save_root = '/Users/xyli1905/Desktop/exp_ADAM'
-    # model = None
-
-    if model == None:
+    # model_name = None
+    
+    if model_name == None:
         for d in os.listdir(save_root):
             bd = os.path.join(save_root, d)
             if os.path.isdir(bd):
                 hid = HiddenDist(model_name = d, save_root = save_root)
                 hid.CalculateDist()
     else:
-        hid = HiddenDist(model_name = model, save_root = save_root)
+        hid = HiddenDist(model_name = model_name, save_root = save_root)
         hid.CalculateDist()
 
