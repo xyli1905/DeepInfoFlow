@@ -10,8 +10,6 @@ class Logger(object):
     def __init__(self, opt, plot_name):
         self._opt = opt
         self.plot_name = plot_name
-        self.log_seperator = self._opt.log_seperator
-        self.log_frequency = self._opt.log_frequency
         self.data = self.createDataDict()
 
         self.weight_grad  = [] # to store W'
@@ -54,27 +52,26 @@ class Logger(object):
         return data
 
     def update(self, epoch):
-        if self.needLog(epoch):
-            self.recorded_epochs.append(epoch)
-            epoch_key = "epoch" + str(epoch)
-            for i in range(len(self.weight_grad)):
-                layer_key = "layer" + str(i)
-                if self._opt.mean:
-                    self.data["weight_value"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=False)
-                    self.data["weight_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=True)
-                    self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= False)
-                    self.data["bias_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= True)
-                if self._opt.std:
-                    self.data["weight_value"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=False)
-                    self.data["weight_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=True)
-                    self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= False)
-                    self.data["bias_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= True)
-                if self._opt.l2n:
-                    self.data["weight_value"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=False)
-                    self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
-                    self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
-                    self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
-            self.calculate_svd()
+        self.recorded_epochs.append(epoch)
+        epoch_key = "epoch" + str(epoch)
+        for i in range(len(self.weight_grad)):
+            layer_key = "layer" + str(i)
+            if self._opt.mean:
+                self.data["weight_value"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=True, isGrad=True)
+                self.data["bias"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["mean"][epoch_key][layer_key] = self.dataParser( i, "mean", isWeight=False, isGrad= True)
+            if self._opt.std:
+                self.data["weight_value"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=True, isGrad=True)
+                self.data["bias"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["std"][epoch_key][layer_key] = self.dataParser( i, "std", isWeight=False, isGrad= True)
+            if self._opt.l2n:
+                self.data["weight_value"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=False)
+                self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
+                self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
+                self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
+        self.calculate_svd()
         self.clear()
 
     def calculate_svd(self):
@@ -197,13 +194,6 @@ class Logger(object):
             return torch.norm(tensor).item()
         else:
             raise RuntimeError('error in calculate weight and gradient data')
-
-    def needLog(self, epoch):
-        # Only log activity for some epochs.  Mainly this is to make things run faster.
-        assert len(self.log_seperator) == len(self.log_frequency), "sha bi"
-        for idx, val in enumerate(self.log_seperator):
-            if epoch < val:
-                return epoch % self.log_frequency[idx] == 0
 
     def get_mean_std(self):
         epoch_std = []

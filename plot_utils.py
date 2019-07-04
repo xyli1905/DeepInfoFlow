@@ -27,7 +27,7 @@ class PlotFigure:
         # ------------------------------------------------------------------ #
         # NOTE self.model_path and self.model_name from Decorator ModelInfo  #
         # ------------------------------------------------------------------ #
-        self.name = 'Plot_Utils'
+        self._name = 'Plot_Utils'
 
         if opt == None:
             self._opt = utils.load_json_as_argparse(self.model_path)
