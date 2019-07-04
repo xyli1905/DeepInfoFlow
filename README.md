@@ -9,14 +9,11 @@ We follow the idea from [ibsgd](https://github.com/artemyk/ibsgd) project. we re
 
 ```
 numpy
-scipy
 matplotlib
 pytorch
 torchvision
-pathlib2 (to be deprecated)
 moviepy
 imageio=2.4.1
-requests
 ```
 
 ## Usage
