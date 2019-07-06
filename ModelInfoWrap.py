@@ -39,8 +39,6 @@ def ModelInfo(func):
         init_self.model_name = model_name
         init_self.model_path = model_path
 
-        setattr(init_self, str(model_name), model_name)
-
         func(init_self, *args, **kwargs)
 
     return wrap
