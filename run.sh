@@ -24,7 +24,7 @@ do
 
 echo "run for: slope = $slope, dispX = $dispX"
 
-$PYTHON IBnet.py \
+$PYTHON SeqModel.py \
 --experiment_name $activ-slope\($slope\)-dispX\($dispX\) \
 --max_epoch 8000 \
 --activation $activ \
