@@ -28,7 +28,9 @@ class Logger(object):
         self.svds = [[], []] # first for original SVD and second for normalized SVD
 
         self._process_param_names = re.compile(r"^D.+(weight|bias)$")
-        
+
+        self.layer_weight_mean = []
+
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
@@ -129,11 +131,11 @@ class Logger(object):
             raise RuntimeError('error in calculate weight and gradient data')
 
         if _type == "mean":
-            # reshaped_tensor = torch.reshape(tensor, (tensor.shape[0], -1))
-            # mean = torch.mean(reshaped_tensor, dim = 0)
             if method == 1:
                 ##METHOD 1: batch-averaged then take norm for each layer
                 mean = torch.mean(tensor, dim = 0)
+                if isWeight and not isGrad:
+                    self.layer_weight_mean.append(mean)
                 return torch.norm(mean).item()
             if method == 2:
                 ##METHOD 2: averge tha (abs) of all w in a layer in a epoch
@@ -172,8 +174,8 @@ class Logger(object):
         # one_epoch_grad = []
 
         # for calculating weight svd
-        for weight in self.weight_value:
-            mean_weight = torch.mean(weight, dim = 0)
+        for i in range(len(self.weight_value)):
+            mean_weight = self.layer_weight_mean[i]
             _, weight_sigma, _ = torch.svd(mean_weight, compute_uv = False)
             ##NOTE either use the original s or the normalized one
             weight_sigma_tmp = weight_sigma.numpy()
@@ -196,6 +198,7 @@ class Logger(object):
         self.weight_value = []
         self.bias_grad = []
         self.bias_value = []
+        self.layer_weight_mean = []
 
 
     def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True, dist_gif = True):
@@ -233,8 +236,8 @@ class Logger(object):
     def cal_batch_mean(self):
         mean_weight = []
         mean_grad = []
-        for layer in range(1, len(self.weight_value)):
-            tmp_weight = torch.mean(self.weight_value[layer], dim = 0).numpy()
+        for layer in range(len(self.weight_value)):
+            tmp_weight = self.layer_weight_mean[layer].numpy()
             tmp_grad   = torch.mean(self.weight_grad[layer], dim = 0).numpy()
             mean_weight.append(tmp_weight)
             mean_grad.append(tmp_grad)
