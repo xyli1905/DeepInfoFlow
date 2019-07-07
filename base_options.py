@@ -21,7 +21,7 @@ class BaseOption:
         self._parser.add_argument('--dispX', type=float, default=0.0, help='x displacement for activationX')
 
         self._parser.add_argument('--batch_size', type=int, default=512, help='number of data points in one batch')
-        self._parser.add_argument('--max_epoch', type=int, default=1000, help='number of epochs')
+        self._parser.add_argument('--max_epoch', type=int, default=100, help='number of epochs')
         self._parser.add_argument('--num_workers', type=int, default=0, help='number of threads')
 
         self._parser.add_argument('--optimizer', type=str, default='sgd', help='choice of optimizer')

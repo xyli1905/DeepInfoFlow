@@ -112,6 +112,7 @@ class Logger(object):
                 self.data["weight_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=True, isGrad=True)
                 self.data["bias"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= False)
                 self.data["bias_grad"]["l2n"][epoch_key][layer_key] = self.dataParser( i, "l2n", isWeight=False, isGrad= True)
+        self.plot_dist_epoch(epoch)
         self.calculate_svd()
         self.clear()
 
@@ -197,9 +198,9 @@ class Logger(object):
         self.bias_value = []
 
 
-    def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True):
+    def plot_figures(self, mean_and_std = True, sv = True, acc_loss = True, dist_gif = True):
         # save epoch data
-        if mean_and_std or sv or acc_loss:
+        if mean_and_std or sv or acc_loss or dist_gif:
             # print(self.recorded_epochs)
             self.plotter.save_plot_data("recorded_epochs_data.pkl", self.recorded_epochs)
         # plot mean_and_std and save the data
@@ -219,7 +220,27 @@ class Logger(object):
             self.plotter.save_plot_data("acc_train_data.pkl", self.acc_train)
             self.plotter.save_plot_data("acc_test_data.pkl", self.acc_test)
             self.plotter.save_plot_data("loss_data.pkl", self.loss)
+        # generate gif for dist plot of weight and weight grad
+        if dist_gif:
+            self.plotter.generate_dist_gif(plot_type = 'weight')
+            self.plotter.generate_dist_gif(plot_type = 'grad')
     
+    def plot_dist_epoch(self, epoch):
+        mean_weight, mean_grad = self.cal_batch_mean()
+        self.plotter.plot_dist(epoch, mean_weight, plot_type='weight')
+        self.plotter.plot_dist(epoch, mean_grad, plot_type='grad')
+
+    def cal_batch_mean(self):
+        mean_weight = []
+        mean_grad = []
+        for layer in range(1, len(self.weight_value)):
+            tmp_weight = torch.mean(self.weight_value[layer], dim = 0).numpy()
+            tmp_grad   = torch.mean(self.weight_grad[layer], dim = 0).numpy()
+            mean_weight.append(tmp_weight)
+            mean_grad.append(tmp_grad)
+
+        return mean_weight, mean_grad
+
     def get_mean_std(self):
         epoch_std = []
         epoch_mean = []

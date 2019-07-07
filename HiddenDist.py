@@ -63,10 +63,10 @@ class HiddenDist:
                         layer_activity[i] = np.concatenate((layer_activity[i], data), axis = 0)
 
             # plot hidden output distribution for each epoch
-            plotter.plot_hidden_dist(epoch, layer_activity)
+            plotter.plot_dist(epoch, layer_activity, plot_type='hidden')
 
         # generate gif for hidden output distribution
-        plotter.generate_hidden_dist_gif()
+        plotter.generate_dist_gif(plot_type='hidden')
 
 
 

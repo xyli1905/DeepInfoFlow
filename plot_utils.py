@@ -48,7 +48,16 @@ class PlotFigure:
         self.model_plot_data_path = os.path.join(self.model_path, 'plots_data')
         if not os.path.exists(self.model_plot_data_path):
             os.mkdir(self.model_plot_data_path)
+
+        # dir for weight and weigth grad for each epoch
+        self.weight_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightDist')
+        if not os.path.exists(self.weight_dist_dir):
+            os.makedirs(self.weight_dist_dir)
+        self.weight_grad_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightGradDist')
+        if not os.path.exists(self.weight_grad_dist_dir):
+            os.makedirs(self.weight_grad_dist_dir)
         
+        # dir for hidden outputs of each epoch
         if IS_HIDDEN_DIST:
             self.hidden_dist_dir = os.path.join(self.model_plot_fig_path, 'HiddenOutDist')
             if not os.path.exists(self.hidden_dist_dir):
@@ -397,36 +406,71 @@ class PlotFigure:
         self._save_fig(fig, 'Acc_and_Loss')
 
 
-    def plot_hidden_dist(self, epoch, layer_activity):
-        Nlayers = len(layer_activity)
+    def plot_dist(self, epoch, values_all_layer, plot_type):
+        if plot_type == 'hidden':
+            dist_dir = self.hidden_dist_dir
+            x_label = 'hidden layer outputs values'
+            title_marker = 'hidden layer outputs'
+        elif plot_type == 'weight':
+            dist_dir = self.weight_dist_dir
+            x_label = 'weight values'
+            title_marker = 'weight values'
+        elif plot_type == 'grad':
+            dist_dir = self.weight_grad_dist_dir
+            x_label = 'weight grad values'
+            title_marker = 'weight grad values'
+        else:
+            raise ValueError('valid plot_type = hidden, weight or grad')
+
+        Nlayers = len(values_all_layer)
 
         fig = plt.figure(figsize=(16,4*Nlayers), constrained_layout=True)
         gs = GridSpec(Nlayers, 1, figure=fig, wspace=0.0, hspace=0.3)
 
+        shared_ax = None
         for i in range(Nlayers):
-            data = layer_activity[i].reshape(-1)
-            ax = fig.add_subplot(gs[i, 0])
+            data = values_all_layer[i].reshape(-1)
+            if (plot_type != 'hidden'):
+                if (i != 0):
+                    ax = fig.add_subplot(gs[i, 0], sharey = shared_ax)
+                else:
+                    ax = fig.add_subplot(gs[i, 0])
+                    shared_ax = ax
+            else:
+                ax = fig.add_subplot(gs[i, 0])
             ax.hist(data, bins = 50)
-            ax.set_xlabel('hidden layer outputs value', fontsize = 24)
+            ax.set_xlabel(x_label, fontsize = 24)
             ax.set_ylabel('counts', fontsize = 24)
             ax.tick_params(labelsize = 16)
-            if i != Nlayers - 1:
+            if (plot_type == 'hidden') and (i != Nlayers - 1):
                 ax.set_xlim(left=self._opt.Vmin, right=self._opt.Vmax)
 
-        fig.suptitle(f'epoch: {str(epoch)} distribution of hidden layer outputs', fontsize=28)
+        fig.suptitle(f'epoch: {str(epoch)} distribution of {title_marker}', fontsize=28)
         fig.subplots_adjust(left = 0.1, bottom=0.05, top=0.95, right=0.95)
 
-        fname = os.path.join(self.hidden_dist_dir, str(epoch) + '.png')
+        fname = os.path.join(dist_dir, str(epoch) + '.png')
         fig.savefig(fname, format='png')
-    
-    def generate_hidden_dist_gif(self):
-        file_names = [fn for fn in os.listdir(self.hidden_dist_dir) if fn.endswith('.png')]
+
+    def generate_dist_gif(self, plot_type):
+        if plot_type == 'hidden':
+            dist_dir = self.hidden_dist_dir
+            gif_name = "Hidden_Output_Distribution.gif"
+        elif plot_type == 'weight':
+            dist_dir = self.weight_dist_dir
+            gif_name = "Weight_Distribution.gif"
+        elif plot_type == 'grad':
+            dist_dir = self.weight_grad_dist_dir
+            gif_name = "Weight_Grad_Distribution.gif"
+        else:
+            raise ValueError('valid plot_type = hidden, weight or grad')
+
+        file_names = [fn for fn in os.listdir(dist_dir) if fn.endswith('.png')]
         if len(file_names) == 0:
             raise ValueError('not enough data')
         list.sort(file_names, key=lambda x: int(x.split('.')[0]))
-        file_names = [os.path.join(self.hidden_dist_dir, fn) for fn in file_names]
+        file_names = [os.path.join(dist_dir, fn) for fn in file_names]
         clip = mpy.ImageSequenceClip(file_names, fps=2)
-        filename = os.path.join(self.model_plot_fig_path, "Hidden_Output_Distribution.gif")
+        filename = os.path.join(self.model_plot_fig_path, gif_name)
         clip.write_gif(filename, fps=2)
 
 
