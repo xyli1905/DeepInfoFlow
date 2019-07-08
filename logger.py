@@ -31,6 +31,9 @@ class Logger(object):
 
         self.layer_weight_mean = []
 
+        self.weight_dist_images = []
+        self.grad_dist_images = []
+
     def createDataDict(self):
         layer_size = len(self._opt.layer_dims) - 1
         epoch_num  = self._opt.max_epoch
@@ -225,13 +228,18 @@ class Logger(object):
             self.plotter.save_plot_data("loss_data.pkl", self.loss)
         # generate gif for dist plot of weight and weight grad
         if dist_gif:
-            self.plotter.generate_dist_gif(plot_type = 'weight')
-            self.plotter.generate_dist_gif(plot_type = 'grad')
+            # self.plotter.generate_dist_gif(plot_type = 'weight')
+            # self.plotter.generate_dist_gif(plot_type = 'grad')
+            self.plotter.generate_dist_gif_by_images(plot_type = 'weight', images = self.weight_dist_images)
+            self.plotter.generate_dist_gif_by_images(plot_type = 'grad', images = self.grad_dist_images)
     
     def plot_dist_epoch(self, epoch):
         mean_weight, mean_grad = self.cal_batch_mean()
-        self.plotter.plot_dist(epoch, mean_weight, plot_type='weight')
-        self.plotter.plot_dist(epoch, mean_grad, plot_type='grad')
+        weight_image = self.plotter.plot_dist(epoch, mean_weight, plot_type='weight')
+        grad_image = self.plotter.plot_dist(epoch, mean_grad, plot_type='grad')
+        self.weight_dist_images.append(weight_image)
+        self.grad_dist_images.append(grad_image)
+
 
     def cal_batch_mean(self):
         mean_weight = []

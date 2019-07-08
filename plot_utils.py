@@ -2,7 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from cycler import cycler
-import moviepy.editor as mpy
+from moviepy.editor import *
 import numpy as np
 import pickle
 import datetime
@@ -10,6 +10,7 @@ import os
 import func_utils as utils
 import sys
 from ModelInfoWrap import ModelInfo
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 np.random.seed()
 
@@ -50,12 +51,14 @@ class PlotFigure:
             os.mkdir(self.model_plot_data_path)
 
         # dir for weight and weigth grad for each epoch
-        self.weight_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightDist')
-        if not os.path.exists(self.weight_dist_dir):
-            os.makedirs(self.weight_dist_dir)
-        self.weight_grad_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightGradDist')
-        if not os.path.exists(self.weight_grad_dist_dir):
-            os.makedirs(self.weight_grad_dist_dir)
+        self.save_dist = False
+        if self.save_dist:
+            self.weight_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightDist')
+            if not os.path.exists(self.weight_dist_dir):
+                os.makedirs(self.weight_dist_dir)
+            self.weight_grad_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightGradDist')
+            if not os.path.exists(self.weight_grad_dist_dir):
+                os.makedirs(self.weight_grad_dist_dir)
         
         # dir for hidden outputs of each epoch
         if IS_HIDDEN_DIST:
@@ -448,8 +451,16 @@ class PlotFigure:
         fig.suptitle(f'epoch: {str(epoch)} distribution of {title_marker}', fontsize=28)
         fig.subplots_adjust(left = 0.1, bottom=0.05, top=0.95, right=0.95)
 
-        fname = os.path.join(dist_dir, str(epoch) + '.png')
-        fig.savefig(fname, format='png')
+        if self.save_dist:
+            fname = os.path.join(dist_dir, str(epoch) + '.png')
+            fig.savefig(fname, format='png')
+
+        size = fig.get_size_inches() * fig.dpi
+        canvas = FigureCanvas(fig)
+        canvas.draw()       # draw the canvas, cache the renderer
+        image = np.fromstring(canvas.tostring_rgb(), dtype='uint8').reshape(int(size[1]), int(size[0]), -1)
+
+        return image
 
     def generate_dist_gif(self, plot_type):
         if plot_type == 'hidden':
@@ -472,6 +483,25 @@ class PlotFigure:
         clip = mpy.ImageSequenceClip(file_names, fps=2)
         filename = os.path.join(self.model_plot_fig_path, gif_name)
         clip.write_gif(filename, fps=2)
+
+    def generate_dist_gif_by_images(self, plot_type, images):
+        if plot_type == 'hidden':
+            dist_dir = self.hidden_dist_dir
+            gif_name = "Hidden_Output_Distribution.gif"
+        elif plot_type == 'weight':
+            dist_dir = self.weight_dist_dir
+            gif_name = "Weight_Distribution.gif"
+        elif plot_type == 'grad':
+            dist_dir = self.weight_grad_dist_dir
+            gif_name = "Weight_Grad_Distribution.gif"
+        else:
+            raise ValueError('valid plot_type = hidden, weight or grad')
+
+        fps = 2
+
+        filename = os.path.join(self.model_plot_fig_path, gif_name)
+        composition = ImageSequenceClip(images, fps = fps)
+        composition.write_gif(filename, fps = fps)
 
 
 
