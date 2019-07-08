@@ -51,7 +51,7 @@ class PlotFigure:
             os.mkdir(self.model_plot_data_path)
 
         # dir for weight and weigth grad for each epoch
-        self.save_dist = False
+        self.save_dist = True
         if self.save_dist:
             self.weight_dist_dir = os.path.join(self.model_plot_fig_path, 'WeightDist')
             if not os.path.exists(self.weight_dist_dir):
@@ -451,9 +451,11 @@ class PlotFigure:
         fig.suptitle(f'epoch: {str(epoch)} distribution of {title_marker}', fontsize=28)
         fig.subplots_adjust(left = 0.1, bottom=0.05, top=0.95, right=0.95)
 
-        if self.save_dist:
-            fname = os.path.join(dist_dir, str(epoch) + '.png')
-            fig.savefig(fname, format='png')
+
+        # to save distribution images TO DO later
+        # if self.save_dist:
+        #     fname = os.path.join(dist_dir, str(epoch) + '.png')
+        #     fig.savefig(fname, format='png')
 
         size = fig.get_size_inches() * fig.dpi
         canvas = FigureCanvas(fig)

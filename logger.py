@@ -230,9 +230,21 @@ class Logger(object):
         if dist_gif:
             # self.plotter.generate_dist_gif(plot_type = 'weight')
             # self.plotter.generate_dist_gif(plot_type = 'grad')
-            self.plotter.generate_dist_gif_by_images(plot_type = 'weight', images = self.weight_dist_images)
-            self.plotter.generate_dist_gif_by_images(plot_type = 'grad', images = self.grad_dist_images)
-    
+            import threading
+            threads = []
+            t1 = threading.Thread(target=self.plotter.generate_dist_gif_by_images, args = ('weight', self.weight_dist_images))
+            threads.append(t1)
+            t2 = threading.Thread(target=self.plotter.generate_dist_gif_by_images, args = ('grad', self.grad_dist_images))
+            threads.append(t2)
+            # self.plotter.generate_dist_gif_by_images(plot_type = 'weight', images = self.weight_dist_images)
+            # self.plotter.generate_dist_gif_by_images(plot_type = 'grad', images = self.grad_dist_images)
+            for t in threads:
+                t.setDaemon(True)
+                t.start()
+
+            for i in threads:
+                i.join()
+
     def plot_dist_epoch(self, epoch):
         mean_weight, mean_grad = self.cal_batch_mean()
         weight_image = self.plotter.plot_dist(epoch, mean_weight, plot_type='weight')
