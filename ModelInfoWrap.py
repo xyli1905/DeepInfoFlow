@@ -6,16 +6,17 @@ import os
 def ModelInfo(func):
     # print('Entry point in decorator')
     args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = getfullargspec(func)
+    default_root = './results'
 
     def _get_model_path(model_name, save_root):
         if model_name == None:
             if save_root == None:
-                model_name, model_path = utils.find_newest_model('./results') # auto-find the newest model
+                model_name, model_path = utils.find_newest_model(default_root) # auto-find the newest model
             else:
                 model_name, model_path = utils.find_newest_model(save_root)
         else:
             if save_root == None:
-                model_path = os.path.join('./results', model_name)
+                model_path = os.path.join(default_root, model_name)
             else:
                 model_path = os.path.join(save_root, model_name)
         
